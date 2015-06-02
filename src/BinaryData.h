@@ -11,12 +11,12 @@
 
 #include <stdint.h>
 #include <assert.h>
-#include "../src/Types.h"
+#include "Types.h"
 
 typedef struct ByteArray
 {
   byte* array;
-  uint32_t size;
+  tmp_size_t size;
 } ByteArray;
 
 // ByteArray manipulation

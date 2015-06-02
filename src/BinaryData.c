@@ -6,7 +6,7 @@
  *
  */
 
-#include "../src/BinaryData.h"
+#include "BinaryData.h"
 
 #include <stdlib.h>
 #include <assert.h>
