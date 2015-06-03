@@ -63,7 +63,7 @@ int32_t bin_to_int32(ByteArray data)
   return bin_to_int32_inplace(data.array);
 }
 
-int8_t bin_to_int8_inplace(byte* data)
+uint8_t bin_to_uint8_inplace(byte* data)
 {
   return *data;
 }

@@ -1,2 +1,3 @@
 - Clean headers using #pragma once
 - Refactor BinaryData (conversion functions)
+- Instead of bin_to_uint..., use bin_to_diskaddr, etc

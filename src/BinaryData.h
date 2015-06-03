@@ -32,7 +32,7 @@ void uint32_to_bin_inplace(uint32_t n, byte* tgt);
 
 int32_t bin_to_int32(ByteArray data);
 
-int8_t bin_to_int8_inplace(byte* data);
+uint8_t bin_to_uint8_inplace(byte* data);
 int32_t bin_to_int32_inplace(byte* data);
 uint32_t bin_to_uint32_inplace(byte* data);
 
