@@ -14,7 +14,7 @@
 
 // Convenience constant
 const ByteArray NullByteArray =
-  { .size = 0, .array = 0};
+{ .size = 0, .array = 0};
 
 // ________ ByteArray manipulation functions ________
 ByteArray concat_bytearray(ByteArray fst, ByteArray snd)
@@ -63,6 +63,11 @@ int32_t bin_to_int32(ByteArray data)
   return bin_to_int32_inplace(data.array);
 }
 
+int8_t bin_to_int8_inplace(byte* data)
+{
+  return *data;
+}
+
 int32_t bin_to_int32_inplace(byte* data)
 {
   int32_t res = 0;
@@ -73,9 +78,14 @@ int32_t bin_to_int32_inplace(byte* data)
   return res;
 }
 
-int8_t bin_to_int8_inplace(byte* data)
+uint32_t bin_to_uint32_inplace(byte* data)
 {
-  return *data;
+  uint32_t res = 0;
+
+  for (int i = 0; i < 4; i++)
+    res += ((uint32_t) data[i]) << 8 * i;
+
+  return res;
 }
 
 void uint32_to_bin_inplace(uint32_t n, byte* tgt)

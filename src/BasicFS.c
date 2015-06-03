@@ -253,8 +253,10 @@ diskaddr_t load_dir_find_addr(BasicFS* fs, File* dir, char* fname)
 
   tmp_size_t dir_block_size = read_file_size(fs, Block, TgtFolder);
 
-  // TODO
-  assert(false);
+  for (tmp_size_t block = 0; block < dir_block_size; block++)
+
+    // TODO
+    assert(false);
 }
 
 File get_file_at_address(BasicFS* fs, diskaddr_t ad)
@@ -292,10 +294,10 @@ tmp_size_t read_file_size(BasicFS* fs, size_type sz_tp, target_file_type ft)
   switch (sz_tp)
   {
     case Logical:
-      return bin_to_int32_inplace(fs->file_main_node);
+      return bin_to_uint32_inplace(fs->file_main_node);
 
     case Block:
-      return 0x00FFFFFF & bin_to_int32_inplace(fs->file_main_node + 4);
+      return 0x00FFFFFF & bin_to_uint32_inplace(fs->file_main_node + 4);
 
     default:
       assert(false);
