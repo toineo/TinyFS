@@ -22,8 +22,9 @@ typedef struct BasicFS
 {
   Disk* d;
 
-  // TODO: bitarray
-  bool* free;
+  // Free blocks management
+  diskaddr_t first_blank; // First address of the "disk tail" (set of never allocated blocks)
+  diskaddr_t free_list; // Chained list of deallocated blocks
 
   // Frame for doing requested read and writes
   byte rw_frame[DBSize];
@@ -86,6 +87,10 @@ BasicFS* create_fs(Disk* d)
   // TODO: free + rw_buffer
   assert(false);
 
+  fs->free_list = 0;
+
+  // TODO: write
+
   return fs;
 }
 
@@ -115,9 +120,9 @@ File get_file(BasicFS* fs, char* filename, File* dir)
 // and return a ByteArray on the data
 ByteArray read_file_frame(BasicFS* fs, File* file, tmp_size_t frame)
 {
-  assert(frame >= read_file_size(fs, Block));
-
   diskaddr_t tgt_block = get_nth_file_addr(fs, file, frame);
+
+  assert(frame >= read_file_size(fs, Block));
 
   load_block_in_buffer(fs, tgt_block);
 
@@ -127,8 +132,12 @@ ByteArray read_file_frame(BasicFS* fs, File* file, tmp_size_t frame)
 // Write the kernel buffer to the <frame>th frame of <file>
 void write_file_frame(BasicFS* fs, File* file, tmp_size_t frame)
 {
-  // TODO
-  assert(false);
+  if (frame >= read_file_size(fs, Block))
+    assert(false); // TODO: allocation!
+
+  diskaddr_t tgt_block = get_nth_file_addr(fs, file, frame);
+
+  disk_write_block(fs->d, tgt_block, fs->rw_frame);
 }
 
 /****** Internal functions ******/

@@ -30,7 +30,7 @@ If `[bits]` is precised before the list, bits are used instead of bytes.
 
 Global
 ------
-The file system is organized thanks to a root node and a free table (FT), tracking
+The file system is organized thanks to a root node and a free list (FL), tracking
 the set of free blocks.
 
 
@@ -47,9 +47,12 @@ Organization of the root node: **TODO**
 * put the root folder in a different block, pointed by the root node
 
 
-Free Table (FT)
+Free List (FL)
 ---------------
 **TODO**
+
+* List (convention = 0 => not set)
+* disk "tail"
 
 File
 ----
