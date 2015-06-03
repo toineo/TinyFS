@@ -12,6 +12,10 @@
 #include <assert.h>
 #include <string.h>
 
+// Convenience constant
+const ByteArray NullByteArray =
+  { .size = 0, .array = 0};
+
 // ________ ByteArray manipulation functions ________
 ByteArray concat_bytearray(ByteArray fst, ByteArray snd)
 {
@@ -67,6 +71,11 @@ int32_t bin_to_int32_inplace(byte* data)
     res += ((int32_t) data[i]) << 8 * i;
 
   return res;
+}
+
+int8_t bin_to_int8_inplace(byte* data)
+{
+  return *data;
 }
 
 void uint32_to_bin_inplace(uint32_t n, byte* tgt)

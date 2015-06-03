@@ -47,12 +47,19 @@ typedef struct BasicFS
 
 } BasicFS;
 
+// TODO: define macros to get all the data shifts with nice names (instead of hardcoded numbers for now)
+
 /****** Internal functions declaration ******/
 // Internal types
 typedef enum
 {
   Block, Logical
 } size_type;
+
+typedef enum
+{
+  DirBit
+} attr_type;
 
 // Load file which main node is at <ad> in cur_file and its main node in fs->main_frame
 void load_file_at_addr(BasicFS* fs, diskaddr_t ad);
@@ -71,6 +78,9 @@ tmp_size_t read_file_size(BasicFS* fs, size_type sz_tp);
 
 // Reads the nth data block address contained in the currently loaded main node
 diskaddr_t read_nth_data_block_addr(BasicFS* fs, tmp_size_t frame);
+
+// Reads attributes of the currently loaded main node
+uint8_t read_attribute(BasicFS* fs, attr_type attr);
 
 /****** Exported functions ******/
 BasicFS* create_fs(Disk* d)
@@ -122,7 +132,11 @@ ByteArray read_file_frame(BasicFS* fs, File* file, tmp_size_t frame)
 {
   diskaddr_t tgt_block = get_nth_file_addr(fs, file, frame);
 
-  assert(frame >= read_file_size(fs, Block));
+  // Let's check the file is not a directory
+  if (read_attribute(fs, DirBit))
+    return NullByteArray;
+
+  assert(frame < read_file_size(fs, Block));
 
   load_block_in_buffer(fs, tgt_block);
 
@@ -194,4 +208,19 @@ diskaddr_t read_nth_data_block_addr(BasicFS* fs, tmp_size_t frame)
 {
   // FIXME: no check on frame
   return bin_to_int32_inplace(fs->main_frame + 8 + frame * 4);
+}
+
+uint8_t read_attribute(BasicFS* fs, attr_type attr)
+{
+  uint8_t attrs = bin_to_int8_inplace(fs->main_frame + 4);
+
+  switch (attr)
+  {
+    case DirBit:
+      return (attrs >> 7) & 0x01; // We shouldn't need the masking, but just in case
+
+    default:
+      assert(false);
+      return 0; // Simply to prevent warnings about missing return
+  }
 }

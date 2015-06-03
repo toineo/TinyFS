@@ -19,6 +19,8 @@ typedef struct ByteArray
   tmp_size_t size;
 } ByteArray;
 
+const ByteArray NullByteArray;
+
 // ByteArray manipulation
 ByteArray concat_bytearray(ByteArray fst, ByteArray snd);
 
@@ -29,6 +31,7 @@ void int32_to_bin_inplace(int32_t n, byte* tgt);
 void uint32_to_bin_inplace(uint32_t n, byte* tgt);
 
 int32_t bin_to_int32(ByteArray data);
+int8_t bin_to_int8_inplace(byte* data);
 
 int32_t bin_to_int32_inplace(byte* data);
 
