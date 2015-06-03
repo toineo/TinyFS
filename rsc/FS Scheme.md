@@ -76,6 +76,8 @@ bytes `(n-1) * DBSize` to `n * DBSize - 1` of the file).
 However, the kernel driver doesn't support this feature yet, and thus only 
 **TODO** blocks can be allocated to a file.
 
+**TODO** Possible unallocated blocks, set to 0
+
 File organization:
 Main node:
 
