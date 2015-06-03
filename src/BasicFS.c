@@ -32,8 +32,9 @@ typedef struct BasicFS
   // Frame for performing I/O for the driver's needs
   byte io_frame[DBSize];
 
-  // Frame for storing the current file main node
-  byte main_frame[DBSize];
+  // Frame for storing the main nodes
+  byte file_main_node[DBSize]; // Current file main node
+  byte dir_main_node[DBSize]; // For storing directory main node (for operations involving both a file and a dir)
 
   // File info of the current loaded file (in main_frame)
   File cur_file;
@@ -132,6 +133,14 @@ File* get_file(BasicFS* fs, char* filename, File* dir)
   assert(false);
 }
 
+// TODO: for later
+void add_file_to_dir(BasicFS* fs, File* file, File* dir, const char* fname)
+{
+  // TODO
+  // Requires a reference counter in file metadata
+  assert(false);
+}
+
 // Basically, load the <frame>th frame of <file> in the kernel buffer
 // and return a ByteArray on the data
 ByteArray read_file_frame(BasicFS* fs, File* file, tmp_size_t frame)
@@ -161,14 +170,6 @@ void write_file_frame(BasicFS* fs, File* file, tmp_size_t frame)
   disk_write_block(fs->d, tgt_block, fs->rw_frame);
 }
 
-// TODO: for later
-void add_file_to_dir(BasicFS* fs, File* file, File* dir, const char* fname)
-{
-  // TODO
-  // Requires a reference counter in attributes
-  assert(false);
-}
-
 /*
  *
  *
@@ -182,7 +183,7 @@ void load_file_at_addr(BasicFS* fs, diskaddr_t ad)
 
   if (!(fs->cur_file.main_node == ad))
     {
-      disk_read_block(fs->d, ad, fs->main_frame);
+      disk_read_block(fs->d, ad, fs->file_main_node);
 
       fs->cur_file.main_node = ad;
     }
@@ -213,26 +214,26 @@ tmp_size_t read_file_size(BasicFS* fs, size_type sz_tp)
   switch (sz_tp)
   {
     case Logical:
-      return bin_to_int32_inplace(fs->main_frame);
+      return bin_to_int32_inplace(fs->file_main_node);
 
     case Block:
-      return 0x00FFFFFF & bin_to_int32_inplace(fs->main_frame + 4);
+      return 0x00FFFFFF & bin_to_int32_inplace(fs->file_main_node + 4);
 
     default:
       assert(false);
-      return 0; // Simply to prevent warnings about missing return
+      return 0; // Simply to remove warnings about missing return
   }
 }
 
 diskaddr_t read_nth_data_block_addr(BasicFS* fs, tmp_size_t frame)
 {
   // FIXME: no check on frame
-  return bin_to_int32_inplace(fs->main_frame + 8 + frame * 4);
+  return bin_to_int32_inplace(fs->file_main_node + 8 + frame * 4);
 }
 
 uint8_t read_attribute(BasicFS* fs, attr_type attr)
 {
-  uint8_t attrs = bin_to_int8_inplace(fs->main_frame + 4);
+  uint8_t attrs = bin_to_int8_inplace(fs->file_main_node + 4);
 
   switch (attr)
   {
@@ -241,6 +242,6 @@ uint8_t read_attribute(BasicFS* fs, attr_type attr)
 
     default:
       assert(false);
-      return 0; // Simply to prevent warnings about missing return
+      return 0; // Simply to remove warnings about missing return
   }
 }
