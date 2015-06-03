@@ -68,6 +68,11 @@ typedef enum
   RWBuffer, IOBuffer, FileMNodeBuffer, DirMNodeBuffer
 } buffer_type;
 
+typedef enum
+{
+  TgtFile, TgtFolder
+} target_file_type;
+
 // Load file which main node is at <ad> in cur_file and its main node in fs->main_frame
 void load_file_at_addr(BasicFS* fs, diskaddr_t ad);
 
@@ -86,7 +91,7 @@ File get_file_at_address(BasicFS* fs, diskaddr_t ad);
 diskaddr_t get_nth_file_addr(BasicFS* fs, File* f, tmp_size_t nblock);
 
 // Reads the <sz_tp> size of the currently loaded main node
-tmp_size_t read_file_size(BasicFS* fs, size_type sz_tp);
+tmp_size_t read_file_size(BasicFS* fs, size_type sz_tp, target_file_type ft);
 
 // Reads the nth data block address contained in the currently loaded main node
 diskaddr_t read_nth_data_block_addr(BasicFS* fs, tmp_size_t frame);
@@ -162,7 +167,7 @@ ByteArray read_file_frame(BasicFS* fs, File* file, tmp_size_t frame)
   if (read_attribute(fs, DirBit))
     return NullByteArray;
 
-  assert(frame < read_file_size(fs, Block));
+  assert(frame < read_file_size(fs, Block, TgtFile));
 
   load_block_in_buffer(fs, tgt_block, RWBuffer);
 
@@ -173,7 +178,7 @@ ByteArray read_file_frame(BasicFS* fs, File* file, tmp_size_t frame)
 // TODO: add a size parameter
 void write_file_frame(BasicFS* fs, File* file, tmp_size_t frame)
 {
-  if (frame >= read_file_size(fs, Block))
+  if (frame >= read_file_size(fs, Block, TgtFile))
     assert(false); // TODO: allocation!
 
   diskaddr_t tgt_block = get_nth_file_addr(fs, file, frame);
@@ -244,6 +249,10 @@ void load_block_in_buffer(BasicFS* fs, diskaddr_t ad, buffer_type buf)
 
 diskaddr_t load_dir_find_addr(BasicFS* fs, File* dir, char* fname)
 {
+  load_block_in_buffer(fs, dir->main_node, DirMNodeBuffer);
+
+  tmp_size_t dir_block_size = read_file_size(fs, Block, TgtFolder);
+
   // TODO
   assert(false);
 }
@@ -262,8 +271,24 @@ diskaddr_t get_nth_file_addr(BasicFS* fs, File* f, tmp_size_t nblock)
   return read_nth_data_block_addr(fs, nblock);
 }
 
-tmp_size_t read_file_size(BasicFS* fs, size_type sz_tp)
+tmp_size_t read_file_size(BasicFS* fs, size_type sz_tp, target_file_type ft)
 {
+  byte* tgt_buffer;
+
+  switch (ft)
+  {
+    case TgtFile:
+      tgt_buffer = fs->file_main_node;
+      break;
+
+    case TgtFolder:
+      tgt_buffer = fs->dir_main_node;
+      break;
+
+    default:
+      assert(false);
+  }
+
   switch (sz_tp)
   {
     case Logical:

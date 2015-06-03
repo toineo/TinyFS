@@ -103,14 +103,26 @@ Folders
 -------
 Folders are represented on disk exactly as files are, with the folder bit (in
 attributes) set to 1. The folder structure is encoded in the data blocks. A
-folder references its child (files and folders) via their main node address,
-associated with a logical file name.
+folder references its child (files and thus folders as well) via their main node
+address, associated with a logical file name.
 
-Each entry in the folder data respects the following format:
+Each entry (called _child entry_) in the folder data respects the following
+format:
 
     1       : fn_size (filename size)
     fn_size : filename, in ascii
     4       : address of the main node of the file
+
+An important property is that a folder data block may often have its last bytes
+unused (for instance if no child entry is small enough to fit in its unused
+bytes), _even if it is not the last data block of the folder_. Therefore, we
+mark such unused bytes with the first byte set to 0 (in place of `fn_size`).
+
+Thanks to this convention and to the existence of `block_size`, we do not
+care (yet) about maintaining the `log_size` of a folder (which would in any
+case be useful only for the last data block).
+
+_Future improvement_: reduce space usage by splitting entries between blocks.
 
 **TODO**
 
