@@ -126,14 +126,14 @@ File get_root(BasicFS* fs)
   return get_file_at_address(fs, 0);
 }
 
-File* create_file(BasicFS* fs, char* filename, File* dir)
+File create_file(BasicFS* fs, char* filename, File* dir)
 {
   // TODO
   assert(false);
 }
 
 // Get file <filename> from folder <dir>
-File* get_file(BasicFS* fs, char* filename, File* dir)
+File get_file(BasicFS* fs, char* filename, File* dir)
 {
   // TODO
   assert(false);
@@ -235,6 +235,15 @@ void load_block_in_buffer(BasicFS* fs, diskaddr_t ad, buffer_type buf)
   }
 
   disk_read_block(fs->d, ad, tgt_buffer);
+}
+
+// Load <dir> in the directory main node buffer and attemps to find
+// the file with name <fname> inside <dir>. Returns 0 if it cannot
+// find such file.
+diskaddr_t load_dir_find_addr(BasicFS* fs, File* dir, char* fname)
+{
+  // TODO
+  assert(false);
 }
 
 File get_file_at_address(BasicFS* fs, diskaddr_t ad)
