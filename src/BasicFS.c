@@ -119,8 +119,14 @@ File get_root(BasicFS* fs)
   return get_file_at_address(fs, 0);
 }
 
+File* create_file(BasicFS* fs, char* filename, File* dir)
+{
+  // TODO
+  assert(false);
+}
+
 // Get file <filename> from folder <dir>
-File get_file(BasicFS* fs, char* filename, File* dir)
+File* get_file(BasicFS* fs, char* filename, File* dir)
 {
   // TODO
   assert(false);
@@ -144,6 +150,7 @@ ByteArray read_file_frame(BasicFS* fs, File* file, tmp_size_t frame)
 }
 
 // Write the kernel buffer to the <frame>th frame of <file>
+// TODO: add a size parameter
 void write_file_frame(BasicFS* fs, File* file, tmp_size_t frame)
 {
   if (frame >= read_file_size(fs, Block))
@@ -153,6 +160,19 @@ void write_file_frame(BasicFS* fs, File* file, tmp_size_t frame)
 
   disk_write_block(fs->d, tgt_block, fs->rw_frame);
 }
+
+// TODO: for later
+void add_file_to_dir(BasicFS* fs, File* file, File* dir, const char* fname)
+{
+  // TODO
+  // Requires a reference counter in attributes
+  assert(false);
+}
+
+/*
+ *
+ *
+ */
 
 /****** Internal functions ******/
 // /!\ This function doesn't reload if the required file is already loaded
