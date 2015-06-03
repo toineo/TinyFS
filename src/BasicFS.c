@@ -71,8 +71,13 @@ typedef enum
 // Load file which main node is at <ad> in cur_file and its main node in fs->main_frame
 void load_file_at_addr(BasicFS* fs, diskaddr_t ad);
 
-// FIXME: refactor in 1 function only (load_file_at_addr/load_block_in_buffer)
+// TODO: descr
 void load_block_in_buffer(BasicFS* fs, diskaddr_t ad, buffer_type buf);
+
+// Load <dir> in the directory main node buffer and attempts to find
+// the file with name <fname> inside <dir>. Returns 0 if it cannot
+// find such file.
+diskaddr_t load_dir_find_addr(BasicFS* fs, File* dir, char* fname);
 
 // TODO
 File get_file_at_address(BasicFS* fs, diskaddr_t ad);
@@ -237,9 +242,6 @@ void load_block_in_buffer(BasicFS* fs, diskaddr_t ad, buffer_type buf)
   disk_read_block(fs->d, ad, tgt_buffer);
 }
 
-// Load <dir> in the directory main node buffer and attemps to find
-// the file with name <fname> inside <dir>. Returns 0 if it cannot
-// find such file.
 diskaddr_t load_dir_find_addr(BasicFS* fs, File* dir, char* fname)
 {
   // TODO
