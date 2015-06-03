@@ -18,6 +18,7 @@
 // As the frames are fixed (and of predetermined size), we store them directly
 // in the file system object to simplify allocation (does this approach has
 // any default - compared to the one were we allocate the frames by hand?)
+// FIXME: better names (in particular, unify buffer names)
 typedef struct BasicFS
 {
   Disk* d;
@@ -62,11 +63,16 @@ typedef enum
   DirBit
 } attr_type;
 
+typedef enum
+{
+  RWBuffer, IOBuffer, FileMNodeBuffer, DirMNodeBuffer
+} buffer_type;
+
 // Load file which main node is at <ad> in cur_file and its main node in fs->main_frame
 void load_file_at_addr(BasicFS* fs, diskaddr_t ad);
 
 // FIXME: refactor in 1 function only (load_file_at_addr/load_block_in_buffer)
-void load_block_in_buffer(BasicFS* fs, diskaddr_t ad);
+void load_block_in_buffer(BasicFS* fs, diskaddr_t ad, buffer_type buf);
 
 // TODO
 File get_file_at_address(BasicFS* fs, diskaddr_t ad);
@@ -153,7 +159,7 @@ ByteArray read_file_frame(BasicFS* fs, File* file, tmp_size_t frame)
 
   assert(frame < read_file_size(fs, Block));
 
-  load_block_in_buffer(fs, tgt_block);
+  load_block_in_buffer(fs, tgt_block, RWBuffer);
 
   return fs->rw_buffer;
 }
@@ -177,22 +183,58 @@ void write_file_frame(BasicFS* fs, File* file, tmp_size_t frame)
 
 /****** Internal functions ******/
 // /!\ This function doesn't reload if the required file is already loaded
-void load_file_at_addr(BasicFS* fs, diskaddr_t ad)
+// FIXME: deprecated (use later a #pragma GCC poison load_file_at_addr)
+#define load_file_at_addr(f,a) \
+  load_file_at_addr_(f,a)\
+  _Pragma ("GCC warning \"Deprecated: load_file_at_addr\"")
+
+void load_file_at_addr_(BasicFS* fs, diskaddr_t ad)
 {
   // TODO: error handling
 
   if (!(fs->cur_file.main_node == ad))
-    {
-      disk_read_block(fs->d, ad, fs->file_main_node);
+  {
+    disk_read_block(fs->d, ad, fs->file_main_node);
 
-      fs->cur_file.main_node = ad;
-    }
+    fs->cur_file.main_node = ad;
+  }
 }
 
-// FIXME: refactor (same than load_file_at_addr)
-void load_block_in_buffer(BasicFS* fs, diskaddr_t ad)
+// /!\ This function loads lazily the buffers which support it:
+// it doesn't reload if the required file is already loaded. However, not
+// every buffer tracks the disk block it currently stores.
+void load_block_in_buffer(BasicFS* fs, diskaddr_t ad, buffer_type buf)
 {
-  disk_read_block(fs->d, ad, fs->rw_frame);
+  byte* tgt_buffer = 0;
+
+  // RWBuffer, IOBuffer, FileMNodeBuffer, DirMNodeBuffer
+  switch (buf)
+  {
+    case RWBuffer:
+      tgt_buffer = fs->rw_frame;
+      break;
+
+    case IOBuffer:
+      tgt_buffer = fs->io_frame;
+      break;
+
+    case FileMNodeBuffer:
+      if (fs->cur_file.main_node == ad)
+        return;
+
+      tgt_buffer = fs->file_main_node;
+      fs->cur_file.main_node = ad;
+      break;
+
+    case DirMNodeBuffer:
+      tgt_buffer = fs->dir_main_node;
+      break;
+
+    default:
+      assert(false);
+  }
+
+  disk_read_block(fs->d, ad, tgt_buffer);
 }
 
 File get_file_at_address(BasicFS* fs, diskaddr_t ad)
@@ -227,7 +269,7 @@ tmp_size_t read_file_size(BasicFS* fs, size_type sz_tp)
 
 diskaddr_t read_nth_data_block_addr(BasicFS* fs, tmp_size_t frame)
 {
-  // FIXME: no check on frame
+// FIXME: no check on frame
   return bin_to_int32_inplace(fs->file_main_node + 8 + frame * 4);
 }
 

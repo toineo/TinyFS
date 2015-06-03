@@ -1,0 +1,2 @@
+- Clean headers using #pragma once
+- Refactor BinaryData (conversion functions)
