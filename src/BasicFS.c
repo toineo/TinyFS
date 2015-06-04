@@ -8,6 +8,8 @@
  *
  */
 
+#include "BasicFS.h"
+
 #include <stdlib.h>
 #include <string.h>
 
@@ -137,7 +139,7 @@ BasicFS* create_fs(Disk* d)
 
   fs->d = d;
 
-  load_file_at_addr(fs, 0);
+  load_block_in_buffer(fs, 0, FileMNodeBuffer);
 
   fs->free_list = 0;
   fs->first_blank = 3; // Root file on block 1, with first data block on 2
@@ -151,14 +153,12 @@ BasicFS* create_fs(Disk* d)
 
   flush_buffer_to_block(fs, 1, FileMNodeBuffer);
 
-  // TODO: + rw_buffer
   ByteArray
   rwbuf =
   { .size = sizeof(fs->rw_frame), .array = fs->rw_frame};
   *(ByteArray *) &(fs->rw_buffer) = rwbuf;
 
-  // TODO: write
-  assert(false);
+  flush_root_node(fs);
 
   return fs;
 }
@@ -175,7 +175,14 @@ BasicFS* retrieve_fs()
 
 File get_root(BasicFS* fs)
 {
-  return get_file_at_address(fs, 1);
+  File
+  root =
+  { .main_node = 1};
+
+  return root;
+
+  // TODO: if file contains "real" metadata, need to do the following:
+  // return get_file_at_address(fs, 1);
 }
 
 File create_file(BasicFS* fs, char* filename, File* dir, bool is_folder)
@@ -183,9 +190,9 @@ File create_file(BasicFS* fs, char* filename, File* dir, bool is_folder)
   diskaddr_t main_node_addr = alloc_block(fs);
   diskaddr_t first_block_addr = alloc_block(fs);
 
-  // In the main node, we do not care about setting all the address except the
-  // first to 0, as block_size is set to 1 (indicates that the other addresses
-  // are meaningless)
+// In the main node, we do not care about setting all the address except the
+// first to 0, as block_size is set to 1 (indicates that the other addresses
+// are meaningless)
 
   set_file_size(fs, Logical, TgtFile, 0);
   set_file_size(fs, Block, TgtFile, 1);
@@ -207,7 +214,7 @@ File get_file(BasicFS* fs, char* filename, File* dir)
   File f;
   f.main_node = load_dir_find_addr(fs, dir, filename, 0);
 
-  // FIXME: that's it?
+// FIXME: that's it?
 
   return f;
 }
@@ -215,8 +222,8 @@ File get_file(BasicFS* fs, char* filename, File* dir)
 // TODO: for later
 void add_file_to_dir(BasicFS* fs, File* file, File* dir, const char* fname)
 {
-  // TODO
-  // Requires a reference counter in file metadata
+// TODO
+// Requires a reference counter in file metadata
   assert(false);
 }
 
@@ -226,7 +233,7 @@ ByteArray read_file_frame(BasicFS* fs, File* file, tmp_size_t frame)
 {
   diskaddr_t tgt_block = get_nth_file_addr(fs, file, frame);
 
-  // Let's check the file is not a directory
+// Let's check the file is not a directory
   if (read_attribute(fs, DirBit))
     return NullByteArray;
 
@@ -258,9 +265,9 @@ void write_file_frame(BasicFS* fs, File* file, tmp_size_t frame)
 
 diskaddr_t alloc_block(BasicFS* fs)
 {
-  // TODO: choose between trying the free list first or the disk tail instead
+// TODO: choose between trying the free list first or the disk tail instead
 
-  // If needed, we could store the disk size in the root node
+// If needed, we could store the disk size in the root node
   if (fs->first_blank < get_disk_size(fs->d))
   {
     fs->first_blank++;
@@ -269,26 +276,26 @@ diskaddr_t alloc_block(BasicFS* fs)
     return fs->first_blank - 1;
   }
 
-  // TODO: free list
+// TODO: free list
   assert(false);
 
 }
 
 void flush_root_node(BasicFS* fs)
 {
-  // TODO
-  assert(false);
+  uint32_to_bin_inplace(fs->first_blank, fs->io_frame);
+  uint32_to_bin_inplace(fs->free_list, fs->io_frame + 4);
+
+  flush_buffer_to_block(fs, 0, IOBuffer);
 }
 
 // /!\ This function doesn't reload if the required file is already loaded
 // FIXME: deprecated (use later a #pragma GCC poison load_file_at_addr)
-#define load_file_at_addr(f,a) \
-  load_file_at_addr_(f,a)\
-  _Pragma ("GCC warning \"Deprecated: load_file_at_addr\"")
 
+#pragma GCC poison load_file_at_addr
 void load_file_at_addr_(BasicFS* fs, diskaddr_t ad)
 {
-  // TODO: error handling
+// TODO: error handling
 
   if (!(fs->cur_file.main_node == ad))
   {
@@ -343,13 +350,13 @@ byte* select_buffer_from_target(BasicFS* fs, target_file_type ft)
 // every buffer tracks the disk block it currently stores.
 void load_block_in_buffer(BasicFS* fs, diskaddr_t ad, buffer_type buf)
 {
-  // Do nothing if using a tracking buffer which already stores the wanted block
+// Do nothing if using a tracking buffer which already stores the wanted block
   if (buf == FileMNodeBuffer && fs->cur_file.main_node == ad)
     return;
 
   disk_read_block(fs->d, ad, select_buffer(fs, buf));
 
-  // Update "tracking" buffers
+// Update "tracking" buffers
   if (buf == FileMNodeBuffer)
     fs->cur_file.main_node = ad;
 
@@ -420,14 +427,14 @@ diskaddr_t load_dir_find_addr(BasicFS* fs, File* dir, char* fname, diskaddr_t re
 
 File get_file_at_address(BasicFS* fs, diskaddr_t ad)
 {
-  load_file_at_addr(fs, ad);
+  load_block_in_buffer(fs, ad, FileMNodeBuffer);
 
   return fs->cur_file;
 }
 
 diskaddr_t get_nth_file_addr(BasicFS* fs, File* f, tmp_size_t nblock)
 {
-  load_file_at_addr(fs, f->main_node);
+  load_block_in_buffer(fs, f->main_node, FileMNodeBuffer);
 
   return read_nth_data_block_addr(fs, nblock, TgtFile);
 }
@@ -484,7 +491,7 @@ diskaddr_t read_nth_data_block_addr(BasicFS* fs, tmp_size_t n_addr, target_file_
 {
   byte* tgt_buffer = select_buffer_from_target(fs, ft);
 
-  // FIXME: no check on frame
+// FIXME: no check on frame
   return bin_to_uint32_inplace(tgt_buffer + FileMNodeFstAddrShift + n_addr * 4);
 }
 
@@ -492,7 +499,7 @@ void set_nth_data_block_addr(BasicFS* fs, tmp_size_t n_addr, target_file_type ft
 {
   byte* tgt_buffer = select_buffer_from_target(fs, ft);
 
-  // FIXME: no check on frame
+// FIXME: no check on frame
   uint32_to_bin_inplace(addr, tgt_buffer + FileMNodeFstAddrShift + n_addr * 4);
 
 }

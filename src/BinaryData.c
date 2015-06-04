@@ -12,6 +12,12 @@
 #include <assert.h>
 #include <string.h>
 
+// TODO
+
+// Switch to big-endian
+
+// TODO
+
 // Convenience constant
 const ByteArray NullByteArray =
 { .size = 0, .array = 0};

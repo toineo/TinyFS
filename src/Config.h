@@ -7,7 +7,7 @@
 #define CONFIG_H_
 
 // Size of the disk blocks (for now, exactly disk sectors)
-#define DBSize 1024
+#define DBSize 512
 
 // TODO: implement a frame size, not necessarily equal to DBSize
 
