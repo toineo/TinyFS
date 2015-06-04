@@ -36,6 +36,21 @@ ByteArray concat_bytearray(ByteArray fst, ByteArray snd)
   return res;
 }
 
+void bin_copy_in_place(ByteArray src, byte* tgt)
+{
+  memcpy(tgt, src.array, src.size);
+}
+
+ByteArray str_to_bytearray(char* str)
+{
+  ByteArray res;
+
+  res.array = (byte*) str;
+  res.size = strlen(str);
+
+  return res;
+}
+
 // ________ Binary marshaling of usual types ________
 
 // FIXME: do this using a macro

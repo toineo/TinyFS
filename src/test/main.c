@@ -8,6 +8,7 @@
 #include "../BasicFS.h"
 
 #include <stdio.h>
+#include <string.h>
 
 Disk* d;
 
@@ -40,7 +41,7 @@ int main()
   char s1[] = "I have really no *********** for these tests.";
   char s2[] = "inspiration";
   char s3[] = " No inspiration at all.";
-  char s4[] = "lol";
+  // char s4[] = "lol";
   char t[DBSize] = "blob";
 
   printf("t start value: %s\n", t);
@@ -54,6 +55,27 @@ int main()
   print_disk_bin(0, 7);
 
   ByteArray buf = read_file_frame(fs, &f1, 0);
+
+  bin_copy_in_place(str_to_bytearray(s1), buf.array);
+
+  write_file_frame(fs, &f1, 0);
+  read_file_frame(fs, &f1, 0);
+
+  bin_copy_in_place(str_to_bytearray(s2), buf.array + 17);
+  write_file_frame(fs, &f2, 0);
+  read_file_frame(fs, &f2, 0);
+
+  bin_copy_in_place(str_to_bytearray(s3), buf.array + sizeof(s1) - 1);
+
+  write_file_frame(fs, &f1, 0);
+  read_file_frame(fs, &f1, 0);
+
+  memcpy(t, buf.array, buf.size);
+
+  printf("t final value: %s\n", t);
+
+  print_disk(4, 1);
+  print_disk(6, 1);
 
   return 0;
 }

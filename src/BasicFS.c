@@ -92,10 +92,7 @@ diskaddr_t alloc_block(BasicFS* fs);
 // TODO: descr
 void flush_root_node(BasicFS* fs);
 
-// Load file which main node is at <ad> in cur_file and its main node in fs->main_frame
-void load_file_at_addr(BasicFS* fs, diskaddr_t ad);
-
-// TODO: descr
+// Load file which main node is at <ad> in cur_file and its main node in <buf>
 void load_block_in_buffer(BasicFS* fs, diskaddr_t ad, buffer_type buf);
 
 // TODO: descr

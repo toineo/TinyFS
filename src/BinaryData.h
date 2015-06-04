@@ -24,6 +24,11 @@ const ByteArray NullByteArray;
 // ByteArray manipulation
 ByteArray concat_bytearray(ByteArray fst, ByteArray snd);
 
+void bin_copy_in_place(ByteArray src, byte* tgt);
+
+// For null terminated strings
+ByteArray str_to_bytearray(char* str);
+
 ByteArray int32_to_bin(int32_t n);
 ByteArray uint32_to_bin(uint32_t n);
 
