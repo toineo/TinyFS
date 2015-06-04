@@ -12,15 +12,15 @@ Basic FS Data scheme
 In this file, we will use the following convention to describe organization of
 binary data: a list of lines following format
 
-    n : descr
+    n: descr
 
 denoting a piece of data. `n` is the number of byte used for this data, and 
 `descr` its role. 
 
 Theses lines are combined in the same way they would be in a C structure:
 
-    n1 : descr1
-    n2 : descr2
+    n1: descr1
+    n2: descr2
     etc...
 
 would be stored on the disk (or in memory) with the first `n1` bytes assigned
@@ -40,7 +40,11 @@ The root node stores the root of the filesystem (logically denoted by "/") -
 which itself allows to access to all the file of the FS - and other informations,
 including the information needed to access the FT.
 
-Organization of the root node: **TODO**
+Organization of the root node: 
+
+    4: disk tail start
+    4: free list head
+**TODO**
 
 **TODO**
 
@@ -81,24 +85,24 @@ However, the kernel driver doesn't support this feature yet, and thus only
 File organization:
 Main node:
 
-    4 : log_size
-    1 : attributes
-    3 : ext_size (converted to a uint32_t in the code, but stored on 3 bytes only)
+    4: log_size
+    1: attributes
+    3: ext_size (converted to a uint32_t in the code, but stored on 3 bytes only)
 
 Followed by a list of addresses:
 
-    4 : (disk) address of data block n
+    4: (disk) address of data block n
 
 The `attributes` field is the following:
 
     [bits]
-    1 : folder bit (1 if the file is a folder)
-    7 : currently unused
+    1: folder bit (1 if the file is a folder)
+    7: currently unused
 <!--- we could also store a ref counter on some bits --->
 
 And each data block follows the following format:
 
-    DBSize : data
+    DBSize: data
 
 
 Folders
@@ -111,9 +115,9 @@ address, associated with a logical file name.
 Each entry (called _child entry_) in the folder data respects the following
 format:
 
-    1       : fn_size (filename size)
-    fn_size : filename, in ascii
-    4       : address of the main node of the file
+    1      : fn_size (filename size)
+    fn_size: filename, in ascii
+    4      : address of the main node of the file
 
 An important property is that a folder data block may often have its last bytes
 unused (for instance if no child entry is small enough to fit in its unused
@@ -131,7 +135,7 @@ _Future improvement_: reduce space usage by splitting entries between blocks.
 
 Kernel organization
 ------------------
-Provides the following primitives :
+Provides the following primitives:
 **TODO**
 
 Put this part in another file

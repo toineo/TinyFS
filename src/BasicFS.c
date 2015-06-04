@@ -60,7 +60,8 @@ typedef struct BasicFS
 
 // TODO: define macros to get all the data shifts with nice names (instead of hardcoded numbers for now)
 
-/****** Internal functions declaration ******/
+/****** Internals ******/
+
 // Internal types
 typedef enum
 {
@@ -81,6 +82,15 @@ typedef enum
 {
   TgtFile, TgtFolder
 } target_file_type;
+
+// Internal functions
+
+// TODO: descr
+// TODO: add a flush parameter
+diskaddr_t alloc_block(BasicFS* fs);
+
+// TODO: descr
+void flush_root_node(BasicFS* fs);
 
 // Load file which main node is at <ad> in cur_file and its main node in fs->main_frame
 void load_file_at_addr(BasicFS* fs, diskaddr_t ad);
@@ -128,10 +138,16 @@ BasicFS* create_fs(Disk* d)
 
   load_file_at_addr(fs, 0);
 
+  fs->free_list = 0;
+  fs->first_blank = 3; // Root file on block 1, with first data block on 2
+
+  // Creating root folder by hand
+  set_file_size(fs, Logical, TgtFile, 0);
+  set_file_size(fs, Block, TgtFile, 1);
+  // TODO: set first address then flush main node
+
   // TODO: free + rw_buffer
   assert(false);
-
-  fs->free_list = 0;
 
   // TODO: write
 
@@ -224,6 +240,31 @@ void write_file_frame(BasicFS* fs, File* file, tmp_size_t frame)
  */
 
 /****** Internal functions ******/
+
+diskaddr_t alloc_block(BasicFS* fs)
+{
+  // TODO: choose between trying the free list first or the disk tail instead
+
+  // If needed, we could store the disk size in the root node
+  if (fs->first_blank < get_disk_size(fs->d))
+  {
+    fs->first_blank++;
+    flush_root_node(fs);
+
+    return fs->first_blank - 1;
+  }
+
+  // TODO: free list
+  assert(false);
+
+}
+
+void flush_root_node(BasicFS* fs)
+{
+  // TODO
+  assert(false);
+}
+
 // /!\ This function doesn't reload if the required file is already loaded
 // FIXME: deprecated (use later a #pragma GCC poison load_file_at_addr)
 #define load_file_at_addr(f,a) \
@@ -235,11 +276,11 @@ void load_file_at_addr_(BasicFS* fs, diskaddr_t ad)
   // TODO: error handling
 
   if (!(fs->cur_file.main_node == ad))
-    {
-      disk_read_block(fs->d, ad, fs->file_main_node);
+  {
+    disk_read_block(fs->d, ad, fs->file_main_node);
 
-      fs->cur_file.main_node = ad;
-    }
+    fs->cur_file.main_node = ad;
+  }
 }
 
 byte* select_buffer(BasicFS* fs, buffer_type buf)
@@ -298,52 +339,51 @@ diskaddr_t load_dir_find_addr(BasicFS* fs, File* dir, char* fname,
   tmp_size_t dir_block_size = read_file_size(fs, Block, TgtFolder);
 
   for (tmp_size_t block = 0; block < dir_block_size; block++)
+  {
+    diskaddr_t datablock_addr = read_nth_data_block_addr(fs, block, TgtFolder);
+    uint32_t cur_pos = FileMNodeFstAddrShift;
+
+    load_block_in_buffer(fs, datablock_addr, IOBuffer);
+
+    // If we do not jump out of the loop (that is, if we exit it normally), it
+    // means that we didn't find the required file, and that file_addr is still 0
+    while (cur_pos < DBSize)
     {
-      diskaddr_t datablock_addr = read_nth_data_block_addr(fs, block,
-          TgtFolder);
-      uint32_t cur_pos = FileMNodeFstAddrShift;
+      uint8_t cur_fname_len = bin_to_uint8_inplace(fs->io_frame + cur_pos);
 
-      load_block_in_buffer(fs, datablock_addr, IOBuffer);
+      // End of entries for this block
+      if (cur_fname_len == 0)
+        break;
 
-      // If we do not jump out of the loop (that is, if we exit it normally), it
-      // means that we didn't find the required file, and that file_addr is still 0
-      while (cur_pos < DBSize)
+      // Early mismatch detection
+      if (cur_fname_len != fname_len)
+      {
+        cur_pos += cur_fname_len;
+        continue;
+      }
+
+      // Compare names
+      // TODO: own strcmp
+      if (strcmp(fname, (char*) fs->io_frame + cur_pos + 1))
+        cur_pos += cur_fname_len; // Not equal
+      else
+      {
+        file_addr = bin_to_uint32_inplace(
+            fs->io_frame + cur_pos + cur_fname_len + 1);
+
+        // We're asked to replace the address
+        if (replace)
         {
-          uint8_t cur_fname_len = bin_to_uint8_inplace(fs->io_frame + cur_pos);
-
-          // End of entries for this block
-          if (cur_fname_len == 0)
-            break;
-
-          // Early mismatch detection
-          if (cur_fname_len != fname_len)
-            {
-              cur_pos += cur_fname_len;
-              continue;
-            }
-
-          // Compare names
-          // TODO: own strcmp
-          if (strcmp(fname, (char*) fs->io_frame + cur_pos + 1))
-            cur_pos += cur_fname_len; // Not equal
-          else
-            {
-              file_addr = bin_to_uint32_inplace(
-                  fs->io_frame + cur_pos + cur_fname_len + 1);
-
-              // We're asked to replace the address
-              if (replace)
-                {
-                  uint32_to_bin_inplace(replace,
-                      fs->io_frame + cur_pos + cur_fname_len + 1);
-                  save_buffer_to_block(fs, datablock_addr, IOBuffer);
-                }
-
-              goto exit;
-            }
-
+          uint32_to_bin_inplace(replace,
+              fs->io_frame + cur_pos + cur_fname_len + 1);
+          save_buffer_to_block(fs, datablock_addr, IOBuffer);
         }
+
+        goto exit;
+      }
+
     }
+  }
 
   exit: return file_addr;
 
@@ -398,6 +438,49 @@ tmp_size_t read_file_size(BasicFS* fs, size_type sz_tp, target_file_type ft)
   }
 
   return res;
+}
+
+void set_file_size(BasicFS* fs, size_type sz_tp, target_file_type ft,
+    tmp_size_t size)
+{
+  byte* tgt_buffer;
+
+  switch (ft)
+  {
+    case TgtFile:
+      tgt_buffer = fs->file_main_node;
+      break;
+
+    case TgtFolder:
+      tgt_buffer = fs->dir_main_node;
+      break;
+
+    default:
+      assert(false);
+  }
+
+  switch (sz_tp)
+  {
+    case Logical:
+      uint32_to_bin_inplace(size, tgt_buffer + FileMNodeLogSizeShift);
+      break;
+
+    case Block:
+      {
+        ByteArray data = uint32_to_bin(size);
+        ByteArray mask = uint32_to_bin(FileMNodeBlockSizeMask);
+
+        tgt_buffer += FileMNodeBlockSizeShift;
+
+        for (int i = 0; i < data.size; i++)
+          tgt_buffer[i] = (mask.array[i] & data.array[i])
+              | ((~mask.array[i]) & tgt_buffer[i]);
+      }
+      break;
+
+    default:
+      assert(false);
+  }
 }
 
 diskaddr_t read_nth_data_block_addr(BasicFS* fs, tmp_size_t frame,
