@@ -1,4 +1,4 @@
 - Clean headers using #pragma once
-- Refactor BinaryData (conversion functions)
+- Refactor BinaryData (conversion functions) + convert to big endian
 - Instead of bin_to_uint..., use bin_to_diskaddr, etc
-- Switch to big-endian
+- Finish block allocation and add a function to set the file size
