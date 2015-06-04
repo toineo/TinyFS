@@ -41,7 +41,7 @@ int main()
   char s1[] = "I have really no *********** for these tests.";
   char s2[] = "inspiration";
   char s3[] = " No inspiration at all.";
-  // char s4[] = "lol";
+  char s4[] = "lol";
   char t[DBSize] = "blob";
 
   printf("t start value: %s\n", t);
@@ -62,6 +62,7 @@ int main()
   read_file_frame(fs, &f1, 0);
 
   bin_copy_in_place(str_to_bytearray(s2), buf.array + 17);
+
   write_file_frame(fs, &f2, 0);
   read_file_frame(fs, &f2, 0);
 
@@ -69,6 +70,11 @@ int main()
 
   write_file_frame(fs, &f1, 0);
   read_file_frame(fs, &f1, 0);
+
+  bin_copy_in_place(str_to_bytearray(s4), buf.array + 10);
+
+  write_file_frame(fs, &f2, 0);
+  read_file_frame(fs, &f2, 0);
 
   memcpy(t, buf.array, buf.size);
 
