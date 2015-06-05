@@ -4,6 +4,7 @@ ____ Misc ____
 - Instead of bin_to_uint..., use bin_to_diskaddr, etc
 - Finish block allocation and add a function to set the file size
 - Error handling
+- Write our own functions for strings
 
 ____ Design ____
 - Implement bigger buffers/blocks (bigger than 1 disk sector, as currently done)
