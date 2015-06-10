@@ -31,12 +31,7 @@ typedef unsigned int diskaddr_t;
 
 typedef unsigned int tmp_size_t;
 
-// Bool emulation
-// Because of project constraints, we only use ints
-typedef unsigned int bool;
-
-#define true 1
-#define false 0
+#include <preinit/lib/types.h>
 
 #endif
 

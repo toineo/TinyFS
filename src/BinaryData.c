@@ -74,7 +74,8 @@ ByteArray uint32_to_bin(uint32_t n)
 
 void int32_to_bin_inplace(int32_t n, byte* tgt)
 {
-  for (int i = 0; i < 4; i++)
+  int i;
+  for (i = 0; i < 4; i++)
     tgt[i] = (n >> (8 * i)) & 0xFF;
 }
 
@@ -93,8 +94,9 @@ uint8_t bin_to_uint8_inplace(byte* data)
 int32_t bin_to_int32_inplace(byte* data)
 {
   int32_t res = 0;
+  int i;
 
-  for (int i = 0; i < 4; i++)
+  for (i = 0; i < 4; i++)
     res += ((int32_t) data[i]) << 8 * i;
 
   return res;
@@ -103,8 +105,9 @@ int32_t bin_to_int32_inplace(byte* data)
 uint32_t bin_to_uint32_inplace(byte* data)
 {
   uint32_t res = 0;
+  int i;
 
-  for (int i = 0; i < 4; i++)
+  for (i = 0; i < 4; i++)
     res += ((uint32_t) data[i]) << 8 * i;
 
   return res;

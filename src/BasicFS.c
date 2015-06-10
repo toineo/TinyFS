@@ -10,15 +10,22 @@
 
 #include "BasicFS.h"
 
-#include <stdlib.h>
-#include <string.h>
-
 #include "Config.h"
 #include "Types.h"
 #include "Disk.h"
 #include "File.h"
 #include "FSStaticAlloc.h"
 
+
+#if USE_STD
+
+#include <string.h>
+
+#else
+
+#include <preinit/lib/string.h>
+
+#endif
 
 // TODO: put these defs in a header?
 // TODO: use these defs everywhere
