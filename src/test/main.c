@@ -49,8 +49,8 @@ int main()
   BasicFS* fs = create_fs(d);
 
   File root = get_root(fs);
-  File f1 = create_file(fs, "me1", &root, false);
-  File f2 = create_file(fs, "me2", &root, false);
+  File f1 = create_file(fs);
+  File f2 = create_file(fs);
 
   print_disk_bin(0, 7);
 

@@ -17,6 +17,8 @@
 #include "Types.h"
 #include "Disk.h"
 #include "File.h"
+#include "FSStaticAlloc.h"
+
 
 // TODO: put these defs in a header?
 // TODO: use these defs everywhere
@@ -36,17 +38,26 @@ typedef enum
 
 typedef enum
 {
-  DirBit
+  DummyAttr
+#if WITH_DIR
+DirBit
+#endif
 } attr_type;
 
 typedef enum
 {
-  RWBuffer, IOBuffer, FileMNodeBuffer, DirMNodeBuffer
+  RWBuffer, IOBuffer, FileMNodeBuffer
+#if WITH_DIR
+  , DirMNodeBuffer
+#endif
 } buffer_type;
 
 typedef enum
 {
-  TgtFile, TgtFolder
+  TgtFile
+#if WITH_DIR
+  , TgtFolder
+#endif
 } target_file_type;
 
 // Internal functions
@@ -97,8 +108,9 @@ BasicFS* create_fs(Disk* d)
 {
   assert(sizeof(BasicFS) <= MemPageSize);
 
-  // TODO: integration -> page alloc
-  BasicFS* fs = malloc(sizeof(BasicFS));
+// TODO: integration -> page alloc
+// BasicFS* fs = malloc(sizeof(BasicFS));
+  BasicFS* fs = alloc_fs();
 
   fs->d = d;
 
@@ -107,11 +119,11 @@ BasicFS* create_fs(Disk* d)
   fs->free_list = 0;
   fs->first_blank = 3; // Root file on block 1, with first data block on 2
 
-  // Creating root folder by hand
+// Creating root folder by hand
   set_file_size(fs, Logical, TgtFile, 0);
   set_file_size(fs, Block, TgtFile, 1);
 
-  // TODO: put the addresses (1 and 2) in definitions
+// TODO: put the addresses (1 and 2) in definitions
   set_nth_data_block_addr(fs, 0, TgtFile, 2);
 
   flush_buffer_to_block(fs, 1, FileMNodeBuffer);
@@ -130,7 +142,7 @@ BasicFS* retrieve_fs()
 {
   BasicFS* fs;
 
-  // TODO
+// TODO
   assert(false);
 
   return fs;
@@ -144,11 +156,15 @@ File get_root(BasicFS* fs)
 
   return root;
 
-  // TODO: if file contains "real" metadata, need to do the following:
-  // return get_file_at_address(fs, 1);
+// TODO: if file contains "real" metadata, need to do the following:
+// return get_file_at_address(fs, 1);
 }
 
-File create_file(BasicFS* fs, char* filename, File* dir, bool is_folder)
+File create_file(BasicFS* fs
+#if WITH_DIR
+    , char* filename, File* dir, bool is_folder
+#endif
+    )
 {
   diskaddr_t main_node_addr = alloc_block(fs);
   diskaddr_t first_block_addr = alloc_block(fs);
@@ -164,12 +180,17 @@ File create_file(BasicFS* fs, char* filename, File* dir, bool is_folder)
 
   flush_buffer_to_block(fs, main_node_addr, FileMNodeBuffer);
 
+#if WITH_DIR
+// TODO: update dir
+#endif
+
   File
   res =
   { .main_node = main_node_addr};
   return res;
 }
 
+#if WITH_DIR
 // Get file <filename> from folder <dir>
 // The file is invalid (address 0) if it could not be found in the folder
 File get_file(BasicFS* fs, char* filename, File* dir)
@@ -189,6 +210,7 @@ void add_file_to_dir(BasicFS* fs, File* file, File* dir, const char* fname)
 // Requires a reference counter in file metadata
   assert(false);
 }
+#endif
 
 // Basically, load the <frame>th frame of <file> in the kernel buffer
 // and return a ByteArray on the data
@@ -196,9 +218,11 @@ ByteArray read_file_frame(BasicFS* fs, File* file, tmp_size_t frame)
 {
   diskaddr_t tgt_block = get_nth_file_addr(fs, file, frame);
 
+#if WITH_DIR
 // Let's check the file is not a directory
   if (read_attribute(fs, DirBit))
-    return NullByteArray;
+  return NullByteArray;
+#endif
 
   assert(frame < read_file_size(fs, Block, TgtFile));
 
@@ -252,22 +276,6 @@ void flush_root_node(BasicFS* fs)
   flush_buffer_to_block(fs, 0, IOBuffer);
 }
 
-// /!\ This function doesn't reload if the required file is already loaded
-// FIXME: deprecated (use later a #pragma GCC poison load_file_at_addr)
-
-#pragma GCC poison load_file_at_addr
-void load_file_at_addr_(BasicFS* fs, diskaddr_t ad)
-{
-// TODO: error handling
-
-  if (!(fs->cur_file.main_node == ad))
-  {
-    disk_read_block(fs->d, ad, fs->file_main_node);
-
-    fs->cur_file.main_node = ad;
-  }
-}
-
 byte* select_buffer(BasicFS* fs, buffer_type buf)
 {
   switch (buf)
@@ -281,8 +289,10 @@ byte* select_buffer(BasicFS* fs, buffer_type buf)
     case FileMNodeBuffer:
       return fs->file_main_node;
 
+#if WITH_DIR
     case DirMNodeBuffer:
       return fs->dir_main_node;
+#endif
 
     default:
       assert(false);
@@ -298,8 +308,10 @@ byte* select_buffer_from_target(BasicFS* fs, target_file_type ft)
     case TgtFile:
       return fs->file_main_node;
 
+#if WITH_DIR
     case TgtFolder:
       return fs->dir_main_node;
+#endif WITH_DIR
 
     default:
       assert(false);
@@ -330,6 +342,7 @@ void flush_buffer_to_block(BasicFS* fs, diskaddr_t ad, buffer_type buf)
   disk_write_block(fs->d, ad, select_buffer(fs, buf));
 }
 
+#if WITH_DIR
 diskaddr_t load_dir_find_addr(BasicFS* fs, File* dir, char* fname, diskaddr_t replace)
 {
   diskaddr_t file_addr = 0;
@@ -346,8 +359,8 @@ diskaddr_t load_dir_find_addr(BasicFS* fs, File* dir, char* fname, diskaddr_t re
 
     load_block_in_buffer(fs, datablock_addr, IOBuffer);
 
-    // If we do not jump out of the loop (that is, if we exit it normally), it
-    // means that we didn't find the required file, and that file_addr is still 0
+// If we do not jump out of the loop (that is, if we exit it normally), it
+// means that we didn't find the required file, and that file_addr is still 0
     while (cur_pos < DBSize)
     {
       uint8_t cur_fname_len = bin_to_uint8_inplace(fs->io_frame + cur_pos);
@@ -366,7 +379,7 @@ diskaddr_t load_dir_find_addr(BasicFS* fs, File* dir, char* fname, diskaddr_t re
       // Compare names
       // TODO: own strcmp
       if (strcmp(fname, (char*) fs->io_frame + cur_pos + 1))
-        cur_pos += cur_fname_len; // Not equal
+        cur_pos += cur_fname_len;  // Not equal
       else
       {
         file_addr = bin_to_uint32_inplace(fs->io_frame + cur_pos + cur_fname_len + 1);
@@ -387,6 +400,7 @@ diskaddr_t load_dir_find_addr(BasicFS* fs, File* dir, char* fname, diskaddr_t re
   exit: return file_addr;
 
 }
+#endif
 
 File get_file_at_address(BasicFS* fs, diskaddr_t ad)
 {
@@ -473,8 +487,10 @@ uint8_t read_attribute(BasicFS* fs, attr_type attr)
 
   switch (attr)
   {
+#if WITH_DIR
     case DirBit:
-      return (attrs >> 7) & 0x01; // We shouldn't need the masking, but just in case
+    return (attrs >> 7) & 0x01; // We shouldn't need the masking, but just in case
+#endif
 
     default:
       assert(false);

@@ -55,7 +55,11 @@ BasicFS* create_fs(Disk* d);
 
 File get_root(BasicFS* fs);
 
-File create_file(BasicFS* fs, char* filename, File* dir, bool is_folder);
+File create_file(BasicFS* fs
+#if WITH_DIR
+    , char* filename, File* dir, bool is_folder
+#endif
+    );
 
 File get_file(BasicFS* fs, char* filename, File* dir);
 
