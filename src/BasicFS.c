@@ -147,7 +147,7 @@ BasicFS* create_fs(Disk* d)
 
 BasicFS* retrieve_fs()
 {
-  BasicFS* fs;
+  BasicFS* fs = 0; // FIXME: temporary
 
 // TODO
   assert(false);
@@ -426,7 +426,7 @@ diskaddr_t get_nth_file_addr(BasicFS* fs, File* f, tmp_size_t nblock)
 
 tmp_size_t read_file_size(BasicFS* fs, size_type sz_tp, target_file_type ft)
 {
-  tmp_size_t res;
+  tmp_size_t res = 0;
 
   switch (sz_tp)
   {
@@ -457,14 +457,23 @@ void set_file_size(BasicFS* fs, size_type sz_tp, target_file_type ft, tmp_size_t
 
     case Block:
       {
+        // FIXME: hardcoded sizes
+        byte data[4];
+        byte mask[4];
+
+        uint32_to_bin_inplace(size, data);
+        uint32_to_bin_inplace(FileMNodeBlockSizeMask, mask);
+
+        /*
         ByteArray data = uint32_to_bin(size);
         ByteArray mask = uint32_to_bin(FileMNodeBlockSizeMask);
+        */
 
         tgt_buffer += FileMNodeBlockSizeShift;
 
         int i;
-        for (i = 0; i < data.size; i++)
-          tgt_buffer[i] = (mask.array[i] & data.array[i]) | ((~mask.array[i]) & tgt_buffer[i]);
+        for (i = 0; i < 4; i++)
+          tgt_buffer[i] = (mask[i] & data[i]) | ((~mask[i]) & tgt_buffer[i]);
       }
       break;
 
@@ -502,7 +511,9 @@ uint8_t read_attribute(BasicFS* fs, attr_type attr)
 #endif
 
     default:
+      // This code is uselessly using attrs to remove warning about its non usage
+      attrs = 0;
       assert(false);
-      return 0; // Simply to remove warnings about missing return
+      return attrs; // Simply to remove warnings about missing return
   }
 }
