@@ -12,13 +12,16 @@
 #include "Types.h"
 #include "Config.h"
 
-#include <assert.h>
-
 #if USE_STD
 
 #include <stdint.h>
+#include <assert.h>
+
 
 #else
+
+// TODO: use the project one instead of removing it
+#define assert(x)
 
 // FIXME: cleaner management of this case
 #define uint32_t unsigned int
