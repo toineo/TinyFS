@@ -10,8 +10,6 @@
 
 #include "Config.h"
 
-#include "stdlib.h"
-
 #if USE_STD
 
 #include <string.h>
