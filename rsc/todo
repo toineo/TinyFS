@@ -1,8 +1,10 @@
 ____ Integration ____
-- Only use int/unsigned int
 - Make a version without filenames and directories
 - Adapt init vbr
 - Use the given disk interface
+
+For proofs:
+- Only use int/unsigned int
 
 ____ Misc ____
 - Clean headers using #pragma once
