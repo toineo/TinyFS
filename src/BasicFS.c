@@ -26,40 +26,6 @@
 #define FileMNodeBlockSizeMask 0x00FFFFFF
 #define FileMNodeFstAddrShift (FileMNodeBlockSizeShift + 4)
 
-// As the frames are fixed (and of predetermined size), we store them directly
-// in the file system object to simplify allocation (does this approach has
-// any default - compared to the one were we allocate the frames by hand?)
-// FIXME: better names (in particular, unify buffer names)
-typedef struct BasicFS
-{
-  Disk* d;
-
-  // Free blocks management
-  diskaddr_t first_blank; // First address of the "disk tail" (set of never allocated blocks)
-  diskaddr_t free_list; // Chained list of deallocated blocks
-
-  // Frame for doing requested read and writes
-  byte rw_frame[DBSize];
-
-  // Frame for performing I/O for the driver's needs
-  byte io_frame[DBSize];
-
-  // Frame for storing the main nodes
-  byte file_main_node[DBSize]; // Current file main node
-  byte dir_main_node[DBSize]; // For storing directory main node (for operations involving both a file and a dir)
-
-  // File info of the current loaded file (in main_frame)
-  File cur_file;
-
-  // ByteArray pointing on rw_frame
-  // As it never changes, we can save it once and for all (for the sake
-  // of convenience)
-  const ByteArray rw_buffer;
-
-  // TODO: root_addr (always 1?)
-
-} BasicFS;
-
 /****** Internals ******/
 
 // Internal types

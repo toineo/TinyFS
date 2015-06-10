@@ -1,3 +1,9 @@
+____ Integration ____
+- Only use int/unsigned int
+- Make a version without filenames and directories
+- Adapt init vbr
+- Use the given disk interface
+
 ____ Misc ____
 - Clean headers using #pragma once
 - Refactor BinaryData (conversion functions) + convert to big endian
