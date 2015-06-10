@@ -44,5 +44,5 @@ void disk_read_block(const Disk const* d, diskaddr_t addr, byte* tgt)
 
 void disk_write_block(Disk const* d, diskaddr_t addr, const byte const * src)
 {
-  memcpy(d->content + addr * DBSize, src, DBSize);
+  memcpy((void*)d->content + addr * DBSize, src, DBSize);
 }
