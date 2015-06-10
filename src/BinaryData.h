@@ -9,9 +9,23 @@
 #ifndef BINARYDATA_H_
 #define BINARYDATA_H_
 
-#include <stdint.h>
-#include <assert.h>
 #include "Types.h"
+#include "Config.h"
+
+#include <assert.h>
+
+#if USE_STD
+
+#include <stdint.h>
+
+#else
+
+// FIXME: cleaner management of this case
+#define uint32_t unsigned int
+#define int32_t int
+#define uint8_t unsigned char
+
+#endif
 
 typedef struct ByteArray
 {

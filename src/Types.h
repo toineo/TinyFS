@@ -7,7 +7,7 @@
 #ifndef TYPES_H_
 #define TYPES_H_
 
-#define USE_STD 0
+#include "Config.h"
 
 #if USE_STD
 #include <stdint.h>
