@@ -272,6 +272,7 @@ diskaddr_t alloc_block(BasicFS* fs)
 
 // TODO: free list
   assert(false);
+  return 0;
 
 }
 
@@ -461,7 +462,8 @@ void set_file_size(BasicFS* fs, size_type sz_tp, target_file_type ft, tmp_size_t
 
         tgt_buffer += FileMNodeBlockSizeShift;
 
-        for (int i = 0; i < data.size; i++)
+        int i;
+        for (i = 0; i < data.size; i++)
           tgt_buffer[i] = (mask.array[i] & data.array[i]) | ((~mask.array[i]) & tgt_buffer[i]);
       }
       break;
