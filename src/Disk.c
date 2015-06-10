@@ -11,20 +11,27 @@
 #include "Config.h"
 
 #include "stdlib.h"
-#include "string.h"
+
+#if USE_STD
+
+#include <string.h>
+
+#else
+
+#include <preinit/lib/string.h>
+
+#endif
 
 typedef struct Disk
 {
-  byte * content;
+  byte content[DBSize * MemDiskSize];
 } Disk;
+
+static Disk fake_disk;
 
 Disk* init_disk()
 {
-  Disk* d = malloc(sizeof(Disk));
-
-  d->content = malloc(sizeof(byte) * DBSize * MemDiskSize);
-
-  return d;
+  return &fake_disk;
 }
 
 int get_disk_size(const Disk const* d)

@@ -35,6 +35,7 @@ void bin_copy_in_place(ByteArray src, byte* tgt)
   memcpy(tgt, src.array, src.size);
 }
 
+#if USE_STD
 ByteArray str_to_bytearray(char* str)
 {
   ByteArray res;
@@ -44,6 +45,7 @@ ByteArray str_to_bytearray(char* str)
 
   return res;
 }
+#endif
 
 // ________ Binary marshaling of usual types ________
 void int32_to_bin_inplace(int32_t n, byte* tgt)
