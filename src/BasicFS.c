@@ -311,7 +311,7 @@ byte* select_buffer_from_target(BasicFS* fs, target_file_type ft)
 #if WITH_DIR
     case TgtFolder:
       return fs->dir_main_node;
-#endif WITH_DIR
+#endif
 
     default:
       assert(false);
