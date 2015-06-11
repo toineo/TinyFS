@@ -41,6 +41,11 @@ int get_disk_size(const Disk const* d)
   return MemDiskSize;
 }
 
+diskaddr_t get_first_addr(const Disk const* d)
+{
+  return 0;
+}
+
 void disk_read_block(const Disk const* d, diskaddr_t addr, byte* tgt)
 {
   memcpy(tgt, d->content + addr * DBSize, DBSize);

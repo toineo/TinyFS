@@ -126,9 +126,10 @@ BasicFS* create_fs(Disk* d)
   load_block_in_buffer(fs, 0, FileMNodeBuffer);
 
   fs->free_list = 0;
-  fs->first_blank = 3; // Root file on block 1, with first data block on 2
+  fs->first_blank = 3 + get_first_addr(d); // Root file on block 1, with first data block on 2
 
   fs->disk_size = get_disk_size(d);
+  fs->root_addr = get_first_addr(d);
 
 // Creating root folder by hand
   set_file_size(fs, Logical, TgtFile, 0);
@@ -137,7 +138,7 @@ BasicFS* create_fs(Disk* d)
 // TODO: put the addresses (1 and 2) in definitions
   set_nth_data_block_addr(fs, 0, TgtFile, 2);
 
-  flush_buffer_to_block(fs, 1, FileMNodeBuffer);
+  flush_buffer_to_block(fs, fs->root_addr + 1, FileMNodeBuffer);
 
   ByteArray
   rwbuf =
@@ -285,7 +286,7 @@ void flush_root_node(BasicFS* fs)
   uint32_to_bin_inplace(fs->first_blank, fs->io_frame);
   uint32_to_bin_inplace(fs->free_list, fs->io_frame + 4);
 
-  flush_buffer_to_block(fs, 0, IOBuffer);
+  flush_buffer_to_block(fs, fs->root_addr, IOBuffer);
 }
 
 byte* select_buffer(BasicFS* fs, buffer_type buf)

@@ -44,7 +44,7 @@ typedef struct BasicFS
   // of convenience)
   const ByteArray rw_buffer;
 
-  // TODO: root_addr (always 1?)
+  diskaddr_t root_addr;
 
 } BasicFS;
 
