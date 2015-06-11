@@ -52,7 +52,7 @@ int main()
   File f1 = create_file(fs);
   File f2 = create_file(fs);
 
-  print_disk_bin(0, 7);
+  //print_disk_bin(0, 7);
 
   ByteArray buf = read_file_frame(fs, &f1, 0);
 

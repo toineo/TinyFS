@@ -1,4 +1,5 @@
 ____ Integration ____
+- Adapt partition code
 - Adapt init vbr
 - Use the given disk interface
 

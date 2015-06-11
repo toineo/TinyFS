@@ -21,7 +21,7 @@ typedef uint8_t byte;
 
 typedef uint32_t diskaddr_t;
 
-typedef uint32_t tmp_size_t;
+typedef uint32_t _size_t;
 
 #else
 
@@ -29,7 +29,7 @@ typedef char byte; // TODO: switch to int as well
 
 typedef unsigned int diskaddr_t;
 
-typedef unsigned int tmp_size_t;
+typedef unsigned int _size_t;
 
 #include <preinit/lib/types.h>
 

@@ -20,9 +20,10 @@
 typedef struct BasicFS
 {
   Disk* d;
+  _size_t disk_size;
 
   // Free blocks management
-  diskaddr_t first_blank; // First address of the "disk tail" (set of never allocated blocks)
+  diskaddr_t first_blank; // First address of the "disk tail" (set of never yet allocated blocks)
   diskaddr_t free_list; // Chained list of deallocated blocks
 
   // Frame for doing requested read and writes
@@ -63,11 +64,13 @@ File create_file(BasicFS* fs
 
 File get_file(BasicFS* fs, char* filename, File* dir);
 
+#if WITH_DIR
 // TODO: for later
 void add_file_to_dir(BasicFS* fs, File* file, File* dir, const char* fname);
+#endif
 
-ByteArray read_file_frame(BasicFS* fs, File* file, tmp_size_t frame);
+ByteArray read_file_frame(BasicFS* fs, File* file, _size_t frame);
 
-void write_file_frame(BasicFS* fs, File* file, tmp_size_t frame);
+void write_file_frame(BasicFS* fs, File* file, _size_t frame);
 
 #endif /* SRC_BASICFS_H_ */

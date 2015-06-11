@@ -18,6 +18,8 @@
 
 #include <preinit/lib/string.h>
 
+#include "fs_partition.h"
+
 #endif
 
 typedef struct Disk
@@ -25,7 +27,9 @@ typedef struct Disk
   byte content[DBSize * MemDiskSize];
 } Disk;
 
+#if USE_STD
 static Disk fake_disk;
+#endif
 
 Disk* init_disk()
 {

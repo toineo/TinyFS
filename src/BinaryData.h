@@ -33,7 +33,7 @@
 typedef struct ByteArray
 {
   byte* array;
-  tmp_size_t size;
+  _size_t size;
 } ByteArray;
 
 const ByteArray NullByteArray;
