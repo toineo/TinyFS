@@ -4,6 +4,7 @@ ____ Integration ____
 
 For proofs:
 - Only use int/unsigned int
+- Avoid bit manipulation (-> that way omega can solve it)
 
 ____ Misc ____
 - Clean headers using #pragma once
