@@ -162,6 +162,7 @@ BasicFS* retrieve_fs()
 
 File get_root(BasicFS* fs)
 {
+  // FIXME
   File
   root =
   { .main_node = 1};
@@ -415,6 +416,7 @@ diskaddr_t load_dir_find_addr(BasicFS* fs, File* dir, char* fname, diskaddr_t re
 }
 #endif
 
+// FIXME remove
 File get_file_at_address(BasicFS* fs, diskaddr_t ad)
 {
   load_block_in_buffer(fs, ad, FileMNodeBuffer);

@@ -1,7 +1,8 @@
 ____ Integration ____
-- Adapt partition code
-- Adapt init vbr
-- Use the given disk interface
+- Inline mbr code from partition code
+- Get/Set byte in BytArray
+- Layer with disk and bytearray
+- Layer with filesystem code
 
 For proofs:
 - Only use int/unsigned int

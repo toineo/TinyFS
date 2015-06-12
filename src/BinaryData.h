@@ -30,6 +30,7 @@
 
 #endif
 
+
 typedef struct ByteArray
 {
   byte* array;
