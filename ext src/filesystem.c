@@ -11,6 +11,9 @@
 #include "filesystem.h"
 
 
+#include <preinit/lib/debug.h>
+
+#define assert KERN_ASSERT
 
 // TODO: put these defs in a header?
 // TODO: use these defs everywhere
@@ -59,7 +62,7 @@ typedef struct filesystem
 /****** Static objects ******/
 filesystem fs[n_fs];
 
-static bool is_fs_init[n_fs] = FALSE; // FIXME init
+static bool is_fs_init[n_fs]; // FIXME init
 
 
 /****** Internals ******/
@@ -165,8 +168,8 @@ void create_fs(int disk_nr, int fs_nr)
   fs[fs_nr].free_list = 0;
   fs[fs_nr].first_blank = 3 + get_first_addr(disk_nr); // Root file on block 1, with first data block on 2
 
-  fs[fs_nr].disk_size = get_disk_size(d);
-  fs[fs_nr].root_addr = get_first_addr(d);
+  fs[fs_nr].disk_size = get_disk_size(disk_nr);
+  fs[fs_nr].root_addr = get_first_addr(disk_nr);
 
 // Creating root folder by hand
   set_file_size(fs_nr, Logical, TgtFile, 0);

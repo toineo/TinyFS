@@ -67,8 +67,8 @@ static byte bytearrays_data[n_bytearray][DiskSectorSize];
 
 static Disk disks[n_disks];
 static struct mbr mbr[n_disks];
-static bool is_disk_init[n_disks] = FALSE; // FIXME init
-static bool is_bytearray_init[n_bytearray] = FALSE; // FIXME init
+static bool is_disk_init[n_disks]; // FIXME init
+static bool is_bytearray_init[n_bytearray]; // FIXME init
 
 // Do we return a disk pointer or do we want a get_disk() function?
 // FIXME: we always use the second partition of a drive...
@@ -99,7 +99,7 @@ Disk* init_disk(int drv_nr)
   return &disks[drv_nr];
 }
 
-ByteArray init_bytearray(int ba_nr)
+void init_bytearray(int ba_nr)
 {
 
   if (ba_nr >= n_bytearray)
@@ -108,13 +108,11 @@ ByteArray init_bytearray(int ba_nr)
   // initialize once.
   if (is_bytearray_init[ba_nr] == TRUE)
   {
-      return &bytearrays[ba_nr];
+      return;
   }
   is_bytearray_init[ba_nr] = TRUE;
 
   bytearrays[ba_nr].array = bytearrays_data[ba_nr];
-
-  return &bytearrays[ba_nr];
 }
 
 int get_disk_size(int drv_nr)

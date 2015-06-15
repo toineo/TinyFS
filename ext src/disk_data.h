@@ -24,6 +24,7 @@ void disk_read_block(int drv_nr, diskaddr_t addr, int tgt_nr);
 void disk_write_block(int drv_nr, diskaddr_t addr, int src_nr);
 
 // Do we really need it? We could just use indexes instead, couldn't we?
+void init_bytearray(int ba_nr);
 ByteArray* get_bytearray(int arr_nr);
 
 void bytearray_set(int arr_nr, int shift, byte value);

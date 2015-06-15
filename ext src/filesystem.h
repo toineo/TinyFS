@@ -48,7 +48,7 @@ File get_file(int fs_nr, char* filename, File* dir);
 void add_file_to_dir(BasicFS* fs, File* file, File* dir, const char* fname);
 #endif
 
-ByteArray read_file_frame(int fs_nr, File* file, _size_t frame);
+int read_file_frame(int fs_nr, File* file, _size_t frame);
 
 void write_file_frame(int fs_nr, File* file, _size_t frame);
 

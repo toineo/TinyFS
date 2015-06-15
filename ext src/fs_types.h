@@ -17,6 +17,8 @@ typedef unsigned int _size_t;
 
 #include <preinit/lib/types.h>
 
+#define false FALSE
+#define true TRUE
 
 
 #endif /* TYPES_H_ */
