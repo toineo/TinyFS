@@ -496,16 +496,11 @@ void set_file_size(int fs_nr, size_type sz_tp, target_file_type ft, _size_t size
 
     case Block:
       {
-        uint32_to_bin_inplace(size, data);
-        uint32_to_bin_inplace(FileMNodeBlockSizeMask, mask);
-
-        tgt_buffer += ;
-
-        // FIXME
+        // FIXME: the mask is hardcoded
         int i;
-        for (i = 0; i < 4; i++)
+        for (i = 0; i < 3; i++)
           bytearray_set(tgt_buffer, FileMNodeBlockSizeShift + i,
-              (mask[i] & data[i]) | ((~mask[i]) & tgt_buffer[i]));
+              (size >> (8 * i)) & 0xFF);
       }
       break;
 
