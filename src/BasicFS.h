@@ -27,14 +27,14 @@ typedef struct BasicFS
   diskaddr_t free_list; // Chained list of deallocated blocks
 
   // Frame for doing requested read and writes
-  byte rw_frame[DBSize];
+  byte rw_frame[DiskSectorSize];
 
   // Frame for performing I/O for the driver's needs
-  byte io_frame[DBSize];
+  byte io_frame[DiskSectorSize];
 
   // Frame for storing the main nodes
-  byte file_main_node[DBSize]; // Current file main node
-  byte dir_main_node[DBSize]; // For storing directory main node (for operations involving both a file and a dir)
+  byte file_main_node[DiskSectorSize]; // Current file main node
+  byte dir_main_node[DiskSectorSize]; // For storing directory main node (for operations involving both a file and a dir)
 
   // File info of the current loaded file (in main_frame)
   File cur_file;

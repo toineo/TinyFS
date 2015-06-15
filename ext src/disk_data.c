@@ -7,16 +7,19 @@
 
 #include "disk_data.h"
 
-#include "Config.h"
+#include "fs_config.h"
 
 #include <preinit/lib/string.h>
 #include <preinit/lib/debug.h>
 #include <preinit/dev/disk.h>
 #include <sys/preinit/lib/gcc.h>
 
-#define drv_nr 0
+//#define drv_nr 0
 
-static bool is_disk_init = FALSE;
+#define n_disks 1
+
+#define n_bytearray 10
+
 
 
 typedef struct Disk
@@ -27,7 +30,13 @@ typedef struct Disk
 
 } Disk;
 
-static Disk static_disk;
+// Now all ByteArrays have a fixed size, equal to a disk sector size
+typedef struct ByteArray
+{
+  byte* array[DiskSectorSize];
+  //_size_t size;
+} ByteArray;
+
 
 // Internal struct simply to read the mbr
 struct mbr
@@ -48,54 +57,66 @@ struct mbr
         uint8_t last_chs[3];
         uint32_t first_lba;
         uint32_t sectors_count;
-    }gcc_packed partition[4];
+    } gcc_packed partition[4];
     uint8_t signature[2];
 } gcc_packed;
 
-static struct mbr mbr;
+
+
+
+// Static objects
+static ByteArray bytearrays [n_bytearray];
+
+static Disk disks[n_disks];
+static struct mbr mbr[n_disks];
+static bool is_disk_init[n_disks] = FALSE; // FIXME init
 
 // Do we return a disk pointer or do we want a get_disk() function?
-Disk* init_disk()
+// FIXME: we always use the second partition of a drive...
+Disk* init_disk(int drv_nr)
 {
+  if (drv_nr >= n_disks)
+    KERN_PANIC("Requesting an inexistent drive!\n");
+
   // init_vbr();
   // initialize once.
   if (is_disk_init == TRUE)
   {
-      return &static_disk;
+      return &disks[drv_nr];
   }
-  is_disk_init = TRUE;
+  is_disk_init[drv_nr] = TRUE;
 
   // find disk driver.
   //disk_part_debug ("drv_nr: %x\n", drv_nr);
-  if ((static_disk.drv = disk_get_dev (drv_nr)) == NULL)
+  if ((disks[drv_nr].drv = disk_get_dev (drv_nr)) == NULL)
       KERN_PANIC("Failed to get disk driver!\n");
 
 
   // read physical mbr from disk.
-  disk_xfer (static_disk.drv, 0, (uintptr_t) &mbr, 1, FALSE);
+  disk_xfer (disks[drv_nr].drv, 0, (uintptr_t) &mbr[drv_nr], 1, FALSE);
 
-  static_disk.first_addr = mbr.partition[2].first_lba;
-  static_disk.size = mbr.partition[2].sectors_count;
+  disks[drv_nr].first_addr = mbr[drv_nr].partition[2].first_lba;
+  disks[drv_nr].size = mbr[drv_nr].partition[2].sectors_count;
 
-  return &static_disk;
+  return &disks[drv_nr];
 }
 
-int get_disk_size(const Disk const* d)
+int get_disk_size(int drv_nr)
 {
-  return d->size;
+  return disks[drv_nr].size;
 }
 
-diskaddr_t get_first_addr(const Disk const* d)
+diskaddr_t get_first_addr(int drv_nr)
 {
-  return d->first_addr;
+  return disks[drv_nr].first_addr;
 }
 
-void disk_read_block(const Disk const* d, diskaddr_t addr, byte* tgt)
+void disk_read_block(int drv_nr, diskaddr_t addr, byte* tgt)
 {
-  disk_xfer (d->drv, addr, (uintptr_t) tgt, 1, FALSE);
+  disk_xfer (disks[drv_nr].drv, addr, (uintptr_t) tgt, 1, FALSE);
 }
 
-void disk_write_block(Disk const* d, diskaddr_t addr, const byte const * src)
+void disk_write_block(int drv_nr, diskaddr_t addr, const byte const * src)
 {
-  disk_xfer (d->drv, addr, (uintptr_t) src, 1, TRUE);
+  disk_xfer (disks[drv_nr].drv, addr, (uintptr_t) src, 1, TRUE);
 }

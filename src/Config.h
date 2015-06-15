@@ -7,7 +7,7 @@
 #define CONFIG_H_
 
 // Size of the disk blocks (for now, exactly disk sectors)
-#define DBSize 512
+#define DiskSectorSize 512
 
 // Enforce project constraints
 #define WITH_DIR 0

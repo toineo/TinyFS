@@ -15,7 +15,7 @@ Disk* d;
 void print_disk(int ad_st, int size)
 {
   for (int block = ad_st; block < ad_st + size; block++)
-    printf("Disk[%d]: %s\n", block, (*(char **) d) + block * DBSize);
+    printf("Disk[%d]: %s\n", block, (*(char **) d) + block * DiskSectorSize);
 }
 
 void print_disk_bin(int ad, int size)
@@ -24,9 +24,9 @@ void print_disk_bin(int ad, int size)
   {
     printf("Disk[%d]:\n", block);
 
-    for (int i = 0; i < DBSize; i++)
+    for (int i = 0; i < DiskSectorSize; i++)
     {
-      printf("%2hx ", (*(byte **) d)[block * DBSize + i]);
+      printf("%2hx ", (*(byte **) d)[block * DiskSectorSize + i]);
       if (i % 16 == 15)
         printf("\n");
     }
@@ -42,7 +42,7 @@ int main()
   char s2[] = "inspiration";
   char s3[] = " No inspiration at all.";
   char s4[] = "lol";
-  char t[DBSize] = "blob";
+  char t[DiskSectorSize] = "blob";
 
   printf("t start value: %s\n", t);
 

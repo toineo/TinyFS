@@ -24,7 +24,7 @@
 
 typedef struct Disk
 {
-  byte content[DBSize * MemDiskSize];
+  byte content[DiskSectorSize * MemDiskSize];
 } Disk;
 
 #if USE_STD
@@ -48,10 +48,10 @@ diskaddr_t get_first_addr(const Disk const* d)
 
 void disk_read_block(const Disk const* d, diskaddr_t addr, byte* tgt)
 {
-  memcpy(tgt, d->content + addr * DBSize, DBSize);
+  memcpy(tgt, d->content + addr * DiskSectorSize, DiskSectorSize);
 }
 
 void disk_write_block(Disk const* d, diskaddr_t addr, const byte const * src)
 {
-  memcpy((void*)d->content + addr * DBSize, src, DBSize);
+  memcpy((void*)d->content + addr * DiskSectorSize, src, DiskSectorSize);
 }
