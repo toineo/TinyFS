@@ -16,9 +16,6 @@
 
 //#define drv_nr 0
 
-#define n_disks 1
-
-#define n_bytearray 10
 
 
 
@@ -81,7 +78,7 @@ Disk* init_disk(int drv_nr)
     KERN_PANIC("Requesting an inexistent drive!\n");
 
   // initialize once.
-  if (is_disk_init == TRUE)
+  if (is_disk_init[drv_nr] == TRUE)
   {
       return &disks[drv_nr];
   }
@@ -109,7 +106,7 @@ ByteArray init_bytearray(int ba_nr)
     KERN_PANIC("Requesting an inexistent byte array!\n");
 
   // initialize once.
-  if (is_bytearray_init == TRUE)
+  if (is_bytearray_init[ba_nr] == TRUE)
   {
       return &bytearrays[ba_nr];
   }
