@@ -30,4 +30,8 @@ ByteArray* get_bytearray(int arr_nr);
 void bytearray_set(int arr_nr, int shift, byte value);
 byte bytearray_get(int arr_nr, int shift);
 
+// Same functions but operating on an uint32
+void bytearray_set_uint32(int arr_nr, int shift, uint32_t value);
+uint32_t bytearray_get_uint32(int arr_nr, int shift);
+
 #endif /* DISK_H_ */

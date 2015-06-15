@@ -477,7 +477,7 @@ diskaddr_t read_nth_data_block_addr(BasicFS* fs, _size_t n_addr, target_file_typ
   byte* tgt_buffer = select_buffer_from_target(fs, ft);
 
 // FIXME: no check on frame
-  return bin_to_uint32_inplace(tgt_buffer + FileMNodeFstAddrShift + n_addr * 4);
+  return bytearray_get_uint32(tgt_buffer, FileMNodeFstAddrShift + n_addr * 4);
 }
 
 void set_nth_data_block_addr(BasicFS* fs, _size_t n_addr, target_file_type ft, diskaddr_t addr)
@@ -491,7 +491,7 @@ void set_nth_data_block_addr(BasicFS* fs, _size_t n_addr, target_file_type ft, d
 
 uint8_t read_attribute(BasicFS* fs, attr_type attr)
 {
-  uint8_t attrs = bin_to_uint8_inplace(fs->file_main_node + FileMNodeAttrShift);
+  uint8_t attrs = bytearray_get(fs->file_main_node, FileMNodeAttrShift);
 
   switch (attr)
   {

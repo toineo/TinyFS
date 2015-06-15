@@ -33,7 +33,7 @@ typedef struct Disk
 // Now all ByteArrays have a fixed size, equal to a disk sector size
 typedef struct ByteArray
 {
-  byte* array[DiskSectorSize];
+  byte* array;
   //_size_t size;
 } ByteArray;
 
@@ -65,11 +65,13 @@ struct mbr
 
 
 // Static objects
-static ByteArray bytearrays [n_bytearray];
+static ByteArray bytearrays[n_bytearray];
+static byte bytearrays_data[n_bytearray][DiskSectorSize];
 
 static Disk disks[n_disks];
 static struct mbr mbr[n_disks];
 static bool is_disk_init[n_disks] = FALSE; // FIXME init
+static bool is_bytearray_init[n_bytearray] = FALSE; // FIXME init
 
 // Do we return a disk pointer or do we want a get_disk() function?
 // FIXME: we always use the second partition of a drive...
@@ -78,7 +80,6 @@ Disk* init_disk(int drv_nr)
   if (drv_nr >= n_disks)
     KERN_PANIC("Requesting an inexistent drive!\n");
 
-  // init_vbr();
   // initialize once.
   if (is_disk_init == TRUE)
   {
@@ -101,6 +102,24 @@ Disk* init_disk(int drv_nr)
   return &disks[drv_nr];
 }
 
+ByteArray init_bytearray(int ba_nr)
+{
+
+  if (ba_nr >= n_bytearray)
+    KERN_PANIC("Requesting an inexistent byte array!\n");
+
+  // initialize once.
+  if (is_bytearray_init == TRUE)
+  {
+      return &bytearrays[ba_nr];
+  }
+  is_bytearray_init[ba_nr] = TRUE;
+
+  bytearrays[ba_nr].array = bytearrays_data[ba_nr];
+
+  return &bytearrays[ba_nr];
+}
+
 int get_disk_size(int drv_nr)
 {
   return disks[drv_nr].size;
@@ -119,4 +138,37 @@ void disk_read_block(int drv_nr, diskaddr_t addr, byte* tgt)
 void disk_write_block(int drv_nr, diskaddr_t addr, const byte const * src)
 {
   disk_xfer (disks[drv_nr].drv, addr, (uintptr_t) src, 1, TRUE);
+}
+
+
+//ByteArray* get_bytearray(int arr_nr);
+
+// ************ FIXME ************
+// Check that the indexes and shifts are always within bounds
+void bytearray_set(int arr_nr, int shift, byte value)
+{
+  bytearrays[arr_nr].array[shift] = value;
+}
+byte bytearray_get(int arr_nr, int shift)
+{
+  return bytearrays[arr_nr].array[shift];
+}
+
+// Same functions but operating on an uint32
+void bytearray_set_uint32(int arr_nr, int shift, uint32_t value)
+{
+  int i;
+  for (i = 0; i < 4; i++)
+    bytearrays[arr_nr].array[shift + i] = (value >> (8 * i)) & 0xFF;
+}
+
+uint32_t bytearray_get_uint32(int arr_nr, int shift)
+{
+  uint32_t res = 0;
+  int i;
+
+  for (i = 0; i < 4; i++)
+    res += ((uint32_t) bytearrays[arr_nr].array[shift + i]) << 8 * i;
+
+  return res;
 }
