@@ -15,7 +15,7 @@ typedef struct Disk Disk;
 
 typedef struct ByteArray ByteArray;
 
-Disk* init_disk();
+Disk* init_disk(int drv_nr);
 
 int get_disk_size(int drv_nr);
 diskaddr_t get_first_addr(int drv_nr);

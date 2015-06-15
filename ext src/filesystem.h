@@ -31,25 +31,25 @@ typedef struct File
 
 typedef struct BasicFS BasicFS;
 
-BasicFS* create_fs(Disk* d);
+void create_fs(int disk_nr, int fs_nr);
 
-File get_root(BasicFS* fs);
+File get_root(int fs_nr);
 
-File create_file(BasicFS* fs
+File create_file(int fs_nr
 #if WITH_DIR
     , char* filename, File* dir, bool is_folder
 #endif
     );
 
-File get_file(BasicFS* fs, char* filename, File* dir);
+File get_file(int fs_nr, char* filename, File* dir);
 
 #if WITH_DIR
 // TODO: for later
 void add_file_to_dir(BasicFS* fs, File* file, File* dir, const char* fname);
 #endif
 
-ByteArray read_file_frame(BasicFS* fs, File* file, _size_t frame);
+ByteArray read_file_frame(int fs_nr, File* file, _size_t frame);
 
-void write_file_frame(BasicFS* fs, File* file, _size_t frame);
+void write_file_frame(int fs_nr, File* file, _size_t frame);
 
 #endif /* SRC_BASICFS_H_ */
