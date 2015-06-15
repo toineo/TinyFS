@@ -29,7 +29,7 @@ typedef struct File
 // in the file system object to simplify allocation (does this approach has
 // any downside - compared to the one were we allocate the buffers by hand?)
 // FIXME: better names (in particular, unify buffer names)
-typedef struct BasicFS
+typedef struct filesystem
 {
   Disk* d;
   _size_t disk_size;
@@ -39,14 +39,14 @@ typedef struct BasicFS
   diskaddr_t free_list; // Chained list of deallocated blocks
 
   // Frame for doing requested read and writes
-  byte rw_frame[DBSize];
+  int rw_buffer_index;
 
   // Frame for performing I/O for the driver's needs
-  byte io_frame[DBSize];
+  byte io_buffer_index;
 
   // Frame for storing the main nodes
-  byte file_main_node[DBSize]; // Current file main node
-  byte dir_main_node[DBSize]; // For storing directory main node (for operations involving both a file and a dir)
+  byte fmainnode_buffer_index; // Current file main node
+  byte dmainnode_buffer_index; // For storing directory main node (for operations involving both a file and a dir)
 
   // File info of the current loaded file (in main_frame)
   File cur_file;
@@ -58,7 +58,7 @@ typedef struct BasicFS
 
   diskaddr_t root_addr;
 
-} BasicFS;
+} filesystem;
 
 // TODO: comments
 

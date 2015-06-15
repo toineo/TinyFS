@@ -1,5 +1,5 @@
 /*
- * BasicFS.c
+ * filesystem.c
  *
  * Extremely basic/naive File System
  * It is only meant to be easy to prove correct and with a tiny memory usage.
@@ -56,16 +56,16 @@ typedef enum
 
 // TODO: descr
 // TODO: add a flush parameter
-diskaddr_t alloc_block(BasicFS* fs);
+diskaddr_t alloc_block(filesystem* fs);
 
 // TODO: descr
-void flush_root_node(BasicFS* fs);
+void flush_root_node(filesystem* fs);
 
 // Load file which main node is at <ad> in cur_file and its main node in <buf>
-void load_block_in_buffer(BasicFS* fs, diskaddr_t ad, buffer_type buf);
+void load_block_in_buffer(filesystem* fs, diskaddr_t ad, buffer_type buf);
 
 // TODO: descr
-void flush_buffer_to_block(BasicFS* fs, diskaddr_t ad, buffer_type buf);
+void flush_buffer_to_block(filesystem* fs, diskaddr_t ad, buffer_type buf);
 
 // Load <dir> in the directory main node buffer and attempts to find
 // the file with name <fname> inside <dir>. Returns 0 if it cannot
@@ -73,38 +73,38 @@ void flush_buffer_to_block(BasicFS* fs, diskaddr_t ad, buffer_type buf);
 // in the folder entry. In addition, if <replace> is not 0, change the
 // address (on disk) to <replace>
 #if WITH_DIR
-diskaddr_t load_dir_find_addr(BasicFS* fs, File* dir, char* fname, diskaddr_t replace);
+diskaddr_t load_dir_find_addr(filesystem* fs, File* dir, char* fname, diskaddr_t replace);
 #endif
 
 // TODO
-File get_file_at_address(BasicFS* fs, diskaddr_t ad);
+File get_file_at_address(filesystem* fs, diskaddr_t ad);
 
 // TODO
-diskaddr_t get_nth_file_addr(BasicFS* fs, File* f, _size_t nblock);
+diskaddr_t get_nth_file_addr(filesystem* fs, File* f, _size_t nblock);
 
 // Reads the <sz_tp> size of the currently loaded main node
-_size_t read_file_size(BasicFS* fs, size_type sz_tp, target_file_type ft);
+_size_t read_file_size(filesystem* fs, size_type sz_tp, target_file_type ft);
 
 // TODO: descr (+ the name is likely confusing)
-void set_file_size(BasicFS* fs, size_type sz_tp, target_file_type ft, _size_t size);
+void set_file_size(filesystem* fs, size_type sz_tp, target_file_type ft, _size_t size);
 
 // Reads the nth data block address contained in the currently loaded main node
-diskaddr_t read_nth_data_block_addr(BasicFS* fs, _size_t n_addr, target_file_type ft);
+diskaddr_t read_nth_data_block_addr(filesystem* fs, _size_t n_addr, target_file_type ft);
 
 // Writes the nth data block address in the currently loaded main node
-void set_nth_data_block_addr(BasicFS* fs, _size_t n_addr, target_file_type ft, diskaddr_t addr);
+void set_nth_data_block_addr(filesystem* fs, _size_t n_addr, target_file_type ft, diskaddr_t addr);
 
 // Reads attributes of the currently loaded main node
-uint8_t read_attribute(BasicFS* fs, attr_type attr);
+uint8_t read_attribute(filesystem* fs, attr_type attr);
 
 /****** Exported functions ******/
-BasicFS* create_fs(Disk* d)
+filesystem* create_fs(Disk* d)
 {
-  assert(sizeof(BasicFS) <= MemPageSize);
+  assert(sizeof(filesystem) <= MemPageSize);
 
 // TODO: integration -> page alloc
-// BasicFS* fs = malloc(sizeof(BasicFS));
-  BasicFS* fs = alloc_fs();
+// filesystem* fs = malloc(sizeof(filesystem));
+  filesystem* fs = alloc_fs();
 
   fs->d = d;
 
@@ -127,7 +127,7 @@ BasicFS* create_fs(Disk* d)
 
   ByteArray
   rwbuf =
-  { .size = sizeof(fs->rw_frame), .array = fs->rw_frame};
+  { .size = sizeof(fs->rw_buffer_index), .array = fs->rw_buffer_index};
   *(ByteArray *) &(fs->rw_buffer) = rwbuf;
 
   flush_root_node(fs);
@@ -135,9 +135,9 @@ BasicFS* create_fs(Disk* d)
   return fs;
 }
 
-BasicFS* retrieve_fs()
+filesystem* retrieve_fs()
 {
-  BasicFS* fs = 0; // FIXME: temporary
+  filesystem* fs = 0; // FIXME: temporary
 
 // TODO
   assert(false);
@@ -145,7 +145,7 @@ BasicFS* retrieve_fs()
   return fs;
 }
 
-File get_root(BasicFS* fs)
+File get_root(filesystem* fs)
 {
   File
   root =
@@ -157,7 +157,7 @@ File get_root(BasicFS* fs)
 // return get_file_at_address(fs, 1);
 }
 
-File create_file(BasicFS* fs
+File create_file(filesystem* fs
 #if WITH_DIR
     , char* filename, File* dir, bool is_folder
 #endif
@@ -190,7 +190,7 @@ File create_file(BasicFS* fs
 #if WITH_DIR
 // Get file <filename> from folder <dir>
 // The file is invalid (address 0) if it could not be found in the folder
-File get_file(BasicFS* fs, char* filename, File* dir)
+File get_file(filesystem* fs, char* filename, File* dir)
 {
   File f;
   f.main_node = load_dir_find_addr(fs, dir, filename, 0);
@@ -201,7 +201,7 @@ File get_file(BasicFS* fs, char* filename, File* dir)
 }
 
 // TODO: for later
-void add_file_to_dir(BasicFS* fs, File* file, File* dir, const char* fname)
+void add_file_to_dir(filesystem* fs, File* file, File* dir, const char* fname)
 {
 // TODO
 // Requires a reference counter in file metadata
@@ -211,7 +211,7 @@ void add_file_to_dir(BasicFS* fs, File* file, File* dir, const char* fname)
 
 // Basically, load the <frame>th frame of <file> in the kernel buffer
 // and return a ByteArray on the data
-ByteArray read_file_frame(BasicFS* fs, File* file, _size_t frame)
+ByteArray read_file_frame(filesystem* fs, File* file, _size_t frame)
 {
   diskaddr_t tgt_block = get_nth_file_addr(fs, file, frame);
 
@@ -230,14 +230,14 @@ ByteArray read_file_frame(BasicFS* fs, File* file, _size_t frame)
 
 // Write the kernel buffer to the <frame>th frame of <file>
 // TODO: add a size parameter
-void write_file_frame(BasicFS* fs, File* file, _size_t frame)
+void write_file_frame(filesystem* fs, File* file, _size_t frame)
 {
   if (frame >= read_file_size(fs, Block, TgtFile))
     assert(false); // TODO: allocation!
 
   diskaddr_t tgt_block = get_nth_file_addr(fs, file, frame);
 
-  disk_write_block(fs->d, tgt_block, fs->rw_frame);
+  disk_write_block(fs->d, tgt_block, fs->rw_buffer_index);
 }
 
 /*
@@ -247,7 +247,7 @@ void write_file_frame(BasicFS* fs, File* file, _size_t frame)
 
 /****** Internal functions ******/
 
-diskaddr_t alloc_block(BasicFS* fs)
+diskaddr_t alloc_block(filesystem* fs)
 {
 // TODO: choose between trying the free list first or the disk tail instead
 
@@ -266,26 +266,26 @@ diskaddr_t alloc_block(BasicFS* fs)
 
 }
 
-void flush_root_node(BasicFS* fs)
+void flush_root_node(filesystem* fs)
 {
-  uint32_to_bin_inplace(fs->first_blank, fs->io_frame);
-  uint32_to_bin_inplace(fs->free_list, fs->io_frame + 4);
+  uint32_to_bin_inplace(fs->first_blank, fs->io_buffer_index);
+  uint32_to_bin_inplace(fs->free_list, fs->io_buffer_index + 4);
 
   flush_buffer_to_block(fs, fs->root_addr, IOBuffer);
 }
 
-byte* select_buffer(BasicFS* fs, buffer_type buf)
+byte* select_buffer(filesystem* fs, buffer_type buf)
 {
   switch (buf)
   {
     case RWBuffer:
-      return fs->rw_frame;
+      return fs->rw_buffer_index;
 
     case IOBuffer:
-      return fs->io_frame;
+      return fs->io_buffer_index;
 
     case FileMNodeBuffer:
-      return fs->file_main_node;
+      return fs->fmainnode_buffer_index;
 
 #if WITH_DIR
     case DirMNodeBuffer:
@@ -299,12 +299,12 @@ byte* select_buffer(BasicFS* fs, buffer_type buf)
   return 0; // Remove 'no return' warnings
 }
 
-byte* select_buffer_from_target(BasicFS* fs, target_file_type ft)
+byte* select_buffer_from_target(filesystem* fs, target_file_type ft)
 {
   switch (ft)
   {
     case TgtFile:
-      return fs->file_main_node;
+      return fs->fmainnode_buffer_index;
 
 #if WITH_DIR
     case TgtFolder:
@@ -321,7 +321,7 @@ byte* select_buffer_from_target(BasicFS* fs, target_file_type ft)
 // /!\ This function loads lazily the buffers which support it:
 // it doesn't reload if the required file is already loaded. However, not
 // every buffer tracks the disk block it currently stores.
-void load_block_in_buffer(BasicFS* fs, diskaddr_t ad, buffer_type buf)
+void load_block_in_buffer(filesystem* fs, diskaddr_t ad, buffer_type buf)
 {
 // Do nothing if using a tracking buffer which already stores the wanted block
   if (buf == FileMNodeBuffer && fs->cur_file.main_node == ad)
@@ -335,13 +335,13 @@ void load_block_in_buffer(BasicFS* fs, diskaddr_t ad, buffer_type buf)
 
 }
 
-void flush_buffer_to_block(BasicFS* fs, diskaddr_t ad, buffer_type buf)
+void flush_buffer_to_block(filesystem* fs, diskaddr_t ad, buffer_type buf)
 {
   disk_write_block(fs->d, ad, select_buffer(fs, buf));
 }
 
 #if WITH_DIR
-diskaddr_t load_dir_find_addr(BasicFS* fs, File* dir, char* fname, diskaddr_t replace)
+diskaddr_t load_dir_find_addr(filesystem* fs, File* dir, char* fname, diskaddr_t replace)
 {
   diskaddr_t file_addr = 0;
   uint8_t fname_len = strlen(fname); // TODO: own functions for strings
@@ -361,7 +361,7 @@ diskaddr_t load_dir_find_addr(BasicFS* fs, File* dir, char* fname, diskaddr_t re
 // means that we didn't find the required file, and that file_addr is still 0
     while (cur_pos < DBSize)
     {
-      uint8_t cur_fname_len = bin_to_uint8_inplace(fs->io_frame + cur_pos);
+      uint8_t cur_fname_len = bin_to_uint8_inplace(fs->io_buffer_index + cur_pos);
 
       // End of entries for this block
       if (cur_fname_len == 0)
@@ -376,16 +376,16 @@ diskaddr_t load_dir_find_addr(BasicFS* fs, File* dir, char* fname, diskaddr_t re
 
       // Compare names
       // TODO: own strcmp
-      if (strcmp(fname, (char*) fs->io_frame + cur_pos + 1))
+      if (strcmp(fname, (char*) fs->io_buffer_index + cur_pos + 1))
         cur_pos += cur_fname_len;  // Not equal
       else
       {
-        file_addr = bin_to_uint32_inplace(fs->io_frame + cur_pos + cur_fname_len + 1);
+        file_addr = bin_to_uint32_inplace(fs->io_buffer_index + cur_pos + cur_fname_len + 1);
 
         // We're asked to replace the address
         if (replace)
         {
-          uint32_to_bin_inplace(replace, fs->io_frame + cur_pos + cur_fname_len + 1);
+          uint32_to_bin_inplace(replace, fs->io_buffer_index + cur_pos + cur_fname_len + 1);
           flush_buffer_to_block(fs, datablock_addr, IOBuffer);
         }
 
@@ -400,21 +400,21 @@ diskaddr_t load_dir_find_addr(BasicFS* fs, File* dir, char* fname, diskaddr_t re
 }
 #endif
 
-File get_file_at_address(BasicFS* fs, diskaddr_t ad)
+File get_file_at_address(filesystem* fs, diskaddr_t ad)
 {
   load_block_in_buffer(fs, ad, FileMNodeBuffer);
 
   return fs->cur_file;
 }
 
-diskaddr_t get_nth_file_addr(BasicFS* fs, File* f, _size_t nblock)
+diskaddr_t get_nth_file_addr(filesystem* fs, File* f, _size_t nblock)
 {
   load_block_in_buffer(fs, f->main_node, FileMNodeBuffer);
 
   return read_nth_data_block_addr(fs, nblock, TgtFile);
 }
 
-_size_t read_file_size(BasicFS* fs, size_type sz_tp, target_file_type ft)
+_size_t read_file_size(filesystem* fs, size_type sz_tp, target_file_type ft)
 {
   _size_t res = 0;
 
@@ -435,7 +435,7 @@ _size_t read_file_size(BasicFS* fs, size_type sz_tp, target_file_type ft)
   return res;
 }
 
-void set_file_size(BasicFS* fs, size_type sz_tp, target_file_type ft, _size_t size)
+void set_file_size(filesystem* fs, size_type sz_tp, target_file_type ft, _size_t size)
 {
   byte* tgt_buffer = select_buffer_from_target(fs, ft);
 
@@ -472,7 +472,7 @@ void set_file_size(BasicFS* fs, size_type sz_tp, target_file_type ft, _size_t si
   }
 }
 
-diskaddr_t read_nth_data_block_addr(BasicFS* fs, _size_t n_addr, target_file_type ft)
+diskaddr_t read_nth_data_block_addr(filesystem* fs, _size_t n_addr, target_file_type ft)
 {
   byte* tgt_buffer = select_buffer_from_target(fs, ft);
 
@@ -480,7 +480,7 @@ diskaddr_t read_nth_data_block_addr(BasicFS* fs, _size_t n_addr, target_file_typ
   return bytearray_get_uint32(tgt_buffer, FileMNodeFstAddrShift + n_addr * 4);
 }
 
-void set_nth_data_block_addr(BasicFS* fs, _size_t n_addr, target_file_type ft, diskaddr_t addr)
+void set_nth_data_block_addr(filesystem* fs, _size_t n_addr, target_file_type ft, diskaddr_t addr)
 {
   byte* tgt_buffer = select_buffer_from_target(fs, ft);
 
@@ -489,9 +489,9 @@ void set_nth_data_block_addr(BasicFS* fs, _size_t n_addr, target_file_type ft, d
 
 }
 
-uint8_t read_attribute(BasicFS* fs, attr_type attr)
+uint8_t read_attribute(filesystem* fs, attr_type attr)
 {
-  uint8_t attrs = bytearray_get(fs->file_main_node, FileMNodeAttrShift);
+  uint8_t attrs = bytearray_get(fs->fmainnode_buffer_index, FileMNodeAttrShift);
 
   switch (attr)
   {
