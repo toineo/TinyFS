@@ -125,14 +125,14 @@ diskaddr_t get_first_addr(int drv_nr)
   return disks[drv_nr].first_addr;
 }
 
-void disk_read_block(int drv_nr, diskaddr_t addr, byte* tgt)
+void disk_read_block(int drv_nr, diskaddr_t addr, int tgt_nr)
 {
-  disk_xfer (disks[drv_nr].drv, addr, (uintptr_t) tgt, 1, FALSE);
+  disk_xfer (disks[drv_nr].drv, addr, (uintptr_t) bytearrays_data[tgt_nr], 1, FALSE);
 }
 
-void disk_write_block(int drv_nr, diskaddr_t addr, const byte const * src)
+void disk_write_block(int drv_nr, diskaddr_t addr, int src_nr)
 {
-  disk_xfer (disks[drv_nr].drv, addr, (uintptr_t) src, 1, TRUE);
+  disk_xfer (disks[drv_nr].drv, addr, (uintptr_t) bytearrays_data[src_nr], 1, TRUE);
 }
 
 

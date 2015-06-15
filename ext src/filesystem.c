@@ -378,7 +378,7 @@ void load_block_in_buffer(int fs_nr, diskaddr_t ad, buffer_type buf)
   if (buf == FileMNodeBuffer && fs[fs_nr].cur_file.main_node == ad)
     return;
 
-  disk_read_block(fs[fs_nr].disk_index, ad, select_buffer(fs, buf));
+  disk_read_block(fs[fs_nr].disk_index, ad, select_buffer(fs_nr, buf));
 
 // Update "tracking" buffers
   if (buf == FileMNodeBuffer)
