@@ -8,7 +8,7 @@
 #ifndef DISK_H_
 #define DISK_H_
 
-#include "Types.h"
+#include "fs_types.h"
 
 #define MemDiskSize 500
 
