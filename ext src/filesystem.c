@@ -155,6 +155,9 @@ void create_fs(int disk_nr, int fs_nr)
   is_fs_init[fs_nr] = TRUE;
   fs[fs_nr].disk_index = disk_nr;
 
+  fs[fs_nr].disk_size = get_disk_size(disk_nr);
+  fs[fs_nr].root_addr = get_first_addr(disk_nr);
+
   for (i = 0; i < n_ba_per_fs; i++)
     init_bytearray(fs_nr * n_ba_per_fs + i);
 
@@ -167,9 +170,6 @@ void create_fs(int disk_nr, int fs_nr)
 
   fs[fs_nr].free_list = 0;
   fs[fs_nr].first_blank = 3 + get_first_addr(disk_nr); // Root file on block 1, with first data block on 2
-
-  fs[fs_nr].disk_size = get_disk_size(disk_nr);
-  fs[fs_nr].root_addr = get_first_addr(disk_nr);
 
 // Creating root folder by hand
   set_file_size(fs_nr, Logical, TgtFile, 0);
