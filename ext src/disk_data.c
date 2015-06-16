@@ -12,7 +12,7 @@
 #include <preinit/lib/string.h>
 #include <preinit/lib/debug.h>
 #include <preinit/dev/disk.h>
-#include <sys/preinit/lib/gcc.h>
+#include <preinit/lib/gcc.h>
 
 //#define drv_nr 0
 
