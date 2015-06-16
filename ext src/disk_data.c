@@ -66,46 +66,42 @@ static byte bytearrays_data[n_bytearray][DiskSectorSize];
 
 static Disk disks[n_disks];
 static struct mbr mbr[n_disks];
-static bool is_disk_init[n_disks]; // FIXME init
-static bool is_bytearray_init[n_bytearray]; // FIXME init
+static bool is_disk_init = false;
 
 // Do we return a disk pointer or do we want a get_disk() function?
 // FIXME: we always use the second partition of a drive...
-Disk* init_disk(int drv_nr)
+void init_disk_data()
 {
-  if (drv_nr >= n_disks)
-    KERN_PANIC("Requesting an inexistent drive!\n");
+  int drv_nr;
+  int ba_nr;
 
   // initialize once.
-  if (is_disk_init[drv_nr] == TRUE)
+  // FIXME: this code isn't needed right?
+  /*
+  if (is_disk_init == TRUE)
   {
-      return &disks[drv_nr];
+    return;
   }
-  is_disk_init[drv_nr] = TRUE;
+  is_disk_init = TRUE;
+  */
 
-  // read physical mbr from disk.
-  disk_xfer_wrap (drv_nr, 0, (uintptr_t) &mbr[drv_nr], 1, FALSE);
 
-  disks[drv_nr].first_addr = mbr[drv_nr].partition[1].first_lba;
-  disks[drv_nr].size = mbr[drv_nr].partition[1].sectors_count;
-
-  return &disks[drv_nr];
-}
-
-void init_bytearray(int ba_nr)
-{
-
-  if (ba_nr >= n_bytearray)
-    KERN_PANIC("Requesting an inexistent byte array!\n");
-
-  // initialize once.
-  if (is_bytearray_init[ba_nr] == TRUE)
+  // Disk init
+  for (drv_nr = 0; drv_nr < n_disks; drv_nr++)
   {
-      return;
-  }
-  is_bytearray_init[ba_nr] = TRUE;
+    // read physical mbr from disk.
+    disk_xfer_wrap(drv_nr, 0, (uintptr_t) &mbr[drv_nr], 1, FALSE);
 
-  bytearrays[ba_nr].array = bytearrays_data[ba_nr];
+    disks[drv_nr].first_addr = mbr[drv_nr].partition[1].first_lba;
+    disks[drv_nr].size = mbr[drv_nr].partition[1].sectors_count;
+  }
+
+  // ByteArray init
+  for (ba_nr = 0; ba_nr < n_bytearray; ba_nr++)
+  {
+    bytearrays[ba_nr].array = bytearrays_data[ba_nr];
+  }
+
 }
 
 int get_disk_size(int drv_nr)
@@ -129,7 +125,6 @@ void disk_write_block(int drv_nr, diskaddr_t addr, int src_nr)
 }
 
 
-//ByteArray* get_bytearray(int arr_nr);
 
 // ************ FIXME ************
 // Check that the indexes and shifts are always within bounds

@@ -9,7 +9,7 @@
 
 #define n_disks 1
 
-#define n_fs 1
+#define n_fs n_disks
 
 // Number of byte arrays used by one filesystem; this is directly determined
 // by how the filesystem is implemented

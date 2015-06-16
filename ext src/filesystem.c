@@ -143,9 +143,14 @@ void set_nth_data_block_addr(int fs_nr, _size_t n_addr, target_file_type ft, dis
 uint8_t read_attribute(int fs_nr, attr_type attr);
 
 /****** Exported functions ******/
-void create_fs(int disk_nr, int fs_nr)
+void init_fs()
 {
   int i;
+
+  // TODO: switch to a better name
+  init_disk_data();
+
+  // TODO: magic number check
 
   // initialize once.
   if (is_fs_init[fs_nr] == TRUE)
