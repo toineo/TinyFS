@@ -1,9 +1,5 @@
 ____ Integration ____
-- Inline mbr code from partition code
-- Get/Set byte in BytArray
-- Layer with disk and bytearray
-- Layer with filesystem code
-  -> each has fixed elements (fs, disk, bytearray), refered by an index
+
 
 For proofs:
 - Only use int/unsigned int

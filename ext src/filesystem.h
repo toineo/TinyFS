@@ -29,8 +29,6 @@ typedef struct File
 
 // TODO: comments
 
-typedef struct BasicFS BasicFS;
-
 void create_fs(int disk_nr, int fs_nr);
 
 File get_root(int fs_nr);
