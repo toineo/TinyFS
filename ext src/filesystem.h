@@ -13,18 +13,18 @@
 #include "disk_data.h"
 
 
-// -> int
-typedef struct File
-{
-  diskaddr_t main_node;
-
-  // We don't need that
-  /*
-   size_t log_size;
-   size_t block_size;
-   */
-
-} File;
+//typedef struct File
+//{
+//  diskaddr_t main_node;
+//
+//  // We don't need that
+//  /*
+//   size_t log_size;
+//   size_t block_size;
+//   */
+//
+//} File;
+typedef diskaddr_t File;
 
 
 // TODO: comments
@@ -39,15 +39,15 @@ File create_file(int fs_nr
 #endif
     );
 
-File get_file(int fs_nr, char* filename, File* dir);
+File get_file(int fs_nr, char* filename, File dir);
 
 #if WITH_DIR
 // TODO: for later
 void add_file_to_dir(BasicFS* fs, File* file, File* dir, const char* fname);
 #endif
 
-int read_file_frame(int fs_nr, File* file, _size_t frame);
+int read_file_frame(int fs_nr, File file, _size_t frame);
 
-void write_file_frame(int fs_nr, File* file, _size_t frame);
+void write_file_frame(int fs_nr, File file, _size_t frame);
 
 #endif /* SRC_BASICFS_H_ */

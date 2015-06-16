@@ -9,13 +9,14 @@
 
 #include "fs_config.h"
 
+#include <preinit/lib/types.h>
+
 typedef char byte; // TODO: switch to int as well
 
-typedef unsigned int diskaddr_t;
+typedef uint64_t diskaddr_t;
 
 typedef unsigned int _size_t;
 
-#include <preinit/lib/types.h>
 
 #define false FALSE
 #define true TRUE

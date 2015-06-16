@@ -118,14 +118,14 @@ void flush_buffer_to_block(int fs_nr, diskaddr_t ad, buffer_type buf);
 // in the folder entry. In addition, if <replace> is not 0, change the
 // address (on disk) to <replace>
 #if WITH_DIR
-diskaddr_t load_dir_find_addr(int fs_nr, File* dir, char* fname, diskaddr_t replace);
+diskaddr_t load_dir_find_addr(int fs_nr, File dir, char* fname, diskaddr_t replace);
 #endif
 
 // TODO
 File get_file_at_address(int fs_nr, diskaddr_t ad);
 
 // TODO
-diskaddr_t get_nth_file_addr(int fs_nr, File* f, _size_t nblock);
+diskaddr_t get_nth_file_addr(int fs_nr, File f, _size_t nblock);
 
 // Reads the <sz_tp> size of the currently loaded main node
 _size_t read_file_size(int fs_nr, size_type sz_tp, target_file_type ft);
@@ -192,14 +192,9 @@ void init_fs()
 
 File get_root(int fs_nr)
 {
-  File
-  root =
-  { .main_node = fs[fs_nr].root_addr + 1};
-
-  return root;
-
-// TODO: if file contains "real" metadata, need to do the following:
-// return get_file_at_address(fs, 1);
+  // If file contains "real" metadata, need to do the following:
+  // return get_file_at_address(fs, 1);
+  return fs[fs_nr].root_addr + 1;
 }
 
 File create_file(int fs_nr
@@ -226,10 +221,7 @@ File create_file(int fs_nr
 // TODO: update dir
 #endif
 
-  File
-  res =
-  { .main_node = main_node_addr};
-  return res;
+  return main_node_addr;
 }
 
 #if WITH_DIR
@@ -237,8 +229,7 @@ File create_file(int fs_nr
 // The file is invalid (address 0) if it could not be found in the folder
 File get_file(int fs_nr, char* filename, File* dir)
 {
-  File f;
-  f.main_node = load_dir_find_addr(fs_nr, dir, filename, 0);
+  File f = load_dir_find_addr(fs_nr, dir, filename, 0);
 
 // FIXME: that's it?
 
@@ -257,7 +248,7 @@ void add_file_to_dir(int fs_nr, File* file, File* dir, const char* fname)
 // Basically, load the <frame>th frame of <file> in the kernel buffer
 // and return the index of the ByteArray, representing the buffer with the data
 // TODO: check frame within bounds
-int read_file_frame(int fs_nr, File* file, _size_t frame)
+int read_file_frame(int fs_nr, File file, _size_t frame)
 {
   diskaddr_t tgt_block = get_nth_file_addr(fs_nr, file, frame);
 
@@ -276,7 +267,7 @@ int read_file_frame(int fs_nr, File* file, _size_t frame)
 
 // Write the kernel buffer to the <frame>th frame of <file>
 // TODO: add a size parameter
-void write_file_frame(int fs_nr, File* file, _size_t frame)
+void write_file_frame(int fs_nr, File file, _size_t frame)
 {
   if (frame >= read_file_size(fs_nr, Block, TgtFile))
     assert(false); // TODO: allocation!
@@ -370,14 +361,14 @@ int select_buffer_from_target(int fs_nr, target_file_type ft)
 void load_block_in_buffer(int fs_nr, diskaddr_t ad, buffer_type buf)
 {
 // Do nothing if using a tracking buffer which already stores the wanted block
-  if (buf == FileMNodeBuffer && fs[fs_nr].cur_file.main_node == ad)
+  if (buf == FileMNodeBuffer && fs[fs_nr].cur_file == ad)
     return;
 
   disk_read_block(fs[fs_nr].disk_index, ad, select_buffer(fs_nr, buf));
 
 // Update "tracking" buffers
   if (buf == FileMNodeBuffer)
-    fs[fs_nr].cur_file.main_node = ad;
+    fs[fs_nr].cur_file = ad;
 
 }
 
@@ -454,9 +445,9 @@ File get_file_at_address(int fs_nr, diskaddr_t ad)
   return fs[fs_nr].cur_file;
 }
 
-diskaddr_t get_nth_file_addr(int fs_nr, File* f, _size_t nblock)
+diskaddr_t get_nth_file_addr(int fs_nr, File f, _size_t nblock)
 {
-  load_block_in_buffer(fs_nr, f->main_node, FileMNodeBuffer);
+  load_block_in_buffer(fs_nr, f, FileMNodeBuffer);
 
   return read_nth_data_block_addr(fs_nr, nblock, TgtFile);
 }
