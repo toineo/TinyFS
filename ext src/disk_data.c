@@ -23,7 +23,6 @@ typedef struct Disk
 {
   diskaddr_t first_addr;
   _size_t size;
-  struct disk_dev * drv;
 
 } Disk;
 
@@ -84,14 +83,8 @@ Disk* init_disk(int drv_nr)
   }
   is_disk_init[drv_nr] = TRUE;
 
-  // find disk driver.
-  //disk_part_debug ("drv_nr: %x\n", drv_nr);
-  if ((disks[drv_nr].drv = disk_get_dev (drv_nr)) == NULL)
-      KERN_PANIC("Failed to get disk driver!\n");
-
-
   // read physical mbr from disk.
-  disk_xfer (disks[drv_nr].drv, 0, (uintptr_t) &mbr[drv_nr], 1, FALSE);
+  disk_xfer_wrap (drv_nr, 0, (uintptr_t) &mbr[drv_nr], 1, FALSE);
 
   disks[drv_nr].first_addr = mbr[drv_nr].partition[1].first_lba;
   disks[drv_nr].size = mbr[drv_nr].partition[1].sectors_count;
@@ -127,12 +120,12 @@ diskaddr_t get_first_addr(int drv_nr)
 
 void disk_read_block(int drv_nr, diskaddr_t addr, int tgt_nr)
 {
-  disk_xfer (disks[drv_nr].drv, addr, (uintptr_t) bytearrays_data[tgt_nr], 1, FALSE);
+  disk_xfer_wrap (drv_nr, addr, (uintptr_t) bytearrays_data[tgt_nr], 1, FALSE);
 }
 
 void disk_write_block(int drv_nr, diskaddr_t addr, int src_nr)
 {
-  disk_xfer (disks[drv_nr].drv, addr, (uintptr_t) bytearrays_data[src_nr], 1, TRUE);
+  disk_xfer_wrap (drv_nr, addr, (uintptr_t) bytearrays_data[src_nr], 1, TRUE);
 }
 
 

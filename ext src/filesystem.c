@@ -39,17 +39,17 @@ typedef struct filesystem
   diskaddr_t first_blank; // First address of the "disk tail" (set of never yet allocated blocks)
   diskaddr_t free_list; // Chained list of deallocated blocks
 
-  // Frame for doing requested read and writes
+  // Buffer for doing requested read and writes
   int rw_buffer_index;
 
-  // Frame for performing I/O for the driver's needs
+  // Buffer for performing I/O for the driver's needs
   byte io_buffer_index;
 
-  // Frame for storing the main nodes
+  // Buffer for storing the main nodes
   byte fmainnode_buffer_index; // Current file main node
   byte dmainnode_buffer_index; // For storing directory main node (for operations involving both a file and a dir)
 
-  // File info of the current loaded file (in main_frame)
+  // File info of the current loaded file (in fmainnode_buffer_index)
   File cur_file;
 
   diskaddr_t root_addr;
@@ -166,6 +166,7 @@ void create_fs(int disk_nr, int fs_nr)
   fs[fs_nr].io_buffer_index = fs_nr * n_ba_per_fs + 2;
   fs[fs_nr].rw_buffer_index = fs_nr * n_ba_per_fs + 3;
 
+  // check
   load_block_in_buffer(fs_nr, 0, FileMNodeBuffer);
 
   fs[fs_nr].free_list = 0;
@@ -262,6 +263,7 @@ void add_file_to_dir(int fs_nr, File* file, File* dir, const char* fname)
 
 // Basically, load the <frame>th frame of <file> in the kernel buffer
 // and return the index of the ByteArray, representing the buffer with the data
+// TODO: check frame within bounds
 int read_file_frame(int fs_nr, File* file, _size_t frame)
 {
   diskaddr_t tgt_block = get_nth_file_addr(fs_nr, file, frame);
