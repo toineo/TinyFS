@@ -27,11 +27,11 @@ typedef struct Disk
 } Disk;
 
 // Now all ByteArrays have a fixed size, equal to a disk sector size
-typedef struct ByteArray
-{
+/*
   byte* array;
   //_size_t size;
 } ByteArray;
+*/
 
 
 // Internal struct simply to read the mbr
@@ -61,7 +61,7 @@ struct mbr
 
 
 // Static objects
-static ByteArray bytearrays[n_bytearray];
+// static ByteArray bytearrays[n_bytearray];
 static byte bytearrays_data[n_bytearray][DiskSectorSize];
 
 static Disk disks[n_disks];
@@ -73,7 +73,7 @@ static bool is_disk_init = false;
 void init_disk_data()
 {
   int drv_nr;
-  int ba_nr;
+  //int ba_nr;
 
   // initialize once.
   // FIXME: this code isn't needed right?
@@ -95,10 +95,12 @@ void init_disk_data()
   }
 
   // ByteArray init
+  /*
   for (ba_nr = 0; ba_nr < n_bytearray; ba_nr++)
   {
     bytearrays[ba_nr].array = bytearrays_data[ba_nr];
   }
+  */
 
 }
 
@@ -128,11 +130,11 @@ void disk_write_block(int drv_nr, diskaddr_t addr, int src_nr)
 // Check that the indexes and shifts are always within bounds
 void bytearray_set(int arr_nr, int shift, byte value)
 {
-  bytearrays[arr_nr].array[shift] = value;
+  bytearrays_data[arr_nr][shift] = value;
 }
 byte bytearray_get(int arr_nr, int shift)
 {
-  return bytearrays[arr_nr].array[shift];
+  return bytearrays_data[arr_nr][shift];
 }
 
 // Same functions but operating on an uint32
@@ -140,7 +142,7 @@ void bytearray_set_uint32(int arr_nr, int shift, uint32_t value)
 {
   int i;
   for (i = 0; i < 4; i++)
-    bytearrays[arr_nr].array[shift + i] = (value >> (8 * i)) & 0xFF;
+    bytearrays_data[arr_nr][shift + i] = (value >> (8 * i)) & 0xFF;
 }
 
 uint32_t bytearray_get_uint32(int arr_nr, int shift)
@@ -149,7 +151,7 @@ uint32_t bytearray_get_uint32(int arr_nr, int shift)
   int i;
 
   for (i = 0; i < 4; i++)
-    res += ((uint32_t) bytearrays[arr_nr].array[shift + i]) << 8 * i;
+    res += ((uint32_t) bytearrays_data[arr_nr][shift + i]) << 8 * i;
 
   return res;
 }
