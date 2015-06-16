@@ -169,7 +169,7 @@ void create_fs(int disk_nr, int fs_nr)
   load_block_in_buffer(fs_nr, 0, FileMNodeBuffer);
 
   fs[fs_nr].free_list = 0;
-  fs[fs_nr].first_blank = 3 + get_first_addr(disk_nr); // Root file on block 1, with first data block on 2
+  fs[fs_nr].first_blank = 3 + fs[fs_nr].root_addr; // Root file on block 1, with first data block on 2
 
 // Creating root folder by hand
   set_file_size(fs_nr, Logical, TgtFile, 0);
@@ -303,7 +303,7 @@ diskaddr_t alloc_block(int fs_nr)
 // TODO: choose between trying the free list first or the disk tail instead
 
 // If needed, we could store the disk size in the root node
-  if (fs[fs_nr].first_blank < fs[fs_nr].disk_size)
+  if (fs[fs_nr].first_blank < fs[fs_nr].root_addr + fs[fs_nr].disk_size)
   {
     fs[fs_nr].first_blank++;
     flush_root_node(fs_nr);

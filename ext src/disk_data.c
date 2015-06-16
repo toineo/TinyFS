@@ -93,8 +93,8 @@ Disk* init_disk(int drv_nr)
   // read physical mbr from disk.
   disk_xfer (disks[drv_nr].drv, 0, (uintptr_t) &mbr[drv_nr], 1, FALSE);
 
-  disks[drv_nr].first_addr = mbr[drv_nr].partition[2].first_lba;
-  disks[drv_nr].size = mbr[drv_nr].partition[2].sectors_count;
+  disks[drv_nr].first_addr = mbr[drv_nr].partition[1].first_lba;
+  disks[drv_nr].size = mbr[drv_nr].partition[1].sectors_count;
 
   return &disks[drv_nr];
 }
