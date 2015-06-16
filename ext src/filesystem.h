@@ -29,7 +29,7 @@ typedef struct File
 
 // TODO: comments
 
-void create_fs();
+void init_fs();
 
 File get_root(int fs_nr);
 
