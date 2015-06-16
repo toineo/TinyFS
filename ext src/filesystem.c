@@ -62,7 +62,7 @@ typedef struct filesystem
 /****** Static objects ******/
 filesystem fs[n_fs];
 
-static bool is_fs_init[n_fs]; // FIXME init
+static bool is_fs_init = false;
 
 
 /****** Internals ******/
@@ -146,60 +146,52 @@ uint8_t read_attribute(int fs_nr, attr_type attr);
 void init_fs()
 {
   int i;
+  int fs_nr;
+
+  // initialize once.
+  if (is_fs_init == TRUE)
+  {
+    return;
+  }
+  is_fs_init = TRUE;
+
 
   // TODO: switch to a better name
   init_disk_data();
 
-  // TODO: magic number check
-
-  // initialize once.
-  if (is_fs_init[fs_nr] == TRUE)
+  for (fs_nr = 0; fs_nr < n_fs; fs_nr++)
   {
-    return;
+    // TODO: magic number check
+    fs[fs_nr].disk_index = fs_nr;
+
+    fs[fs_nr].disk_size = get_disk_size(disk_nr);
+    fs[fs_nr].root_addr = get_first_addr(disk_nr);
+
+    for (i = 0; i < n_ba_per_fs; i++)
+      init_bytearray(fs_nr * n_ba_per_fs + i);
+
+    fs[fs_nr].fmainnode_buffer_index = fs_nr * n_ba_per_fs;
+    fs[fs_nr].dmainnode_buffer_index = fs_nr * n_ba_per_fs + 1;
+    fs[fs_nr].io_buffer_index = fs_nr * n_ba_per_fs + 2;
+    fs[fs_nr].rw_buffer_index = fs_nr * n_ba_per_fs + 3;
+
+    load_block_in_buffer(fs_nr, fs[fs_nr].root_addr + 1, FileMNodeBuffer);
+
+    fs[fs_nr].free_list = 0;
+    fs[fs_nr].first_blank = 3 + fs[fs_nr].root_addr; // Root file on block 1, with first data block on 2
+
+    // Creating root folder by hand
+    set_file_size(fs_nr, Logical, TgtFile, 0);
+    set_file_size(fs_nr, Block, TgtFile, 1);
+
+    // TODO: put the addresses (1 and 2) in definitions
+    set_nth_data_block_addr(fs_nr, 0, TgtFile, 2);
+
+    flush_buffer_to_block(fs_nr, fs[fs_nr].root_addr + 1, FileMNodeBuffer);
+
+    flush_root_node(fs_nr);
+
   }
-  is_fs_init[fs_nr] = TRUE;
-  fs[fs_nr].disk_index = disk_nr;
-
-  fs[fs_nr].disk_size = get_disk_size(disk_nr);
-  fs[fs_nr].root_addr = get_first_addr(disk_nr);
-
-  for (i = 0; i < n_ba_per_fs; i++)
-    init_bytearray(fs_nr * n_ba_per_fs + i);
-
-  fs[fs_nr].fmainnode_buffer_index = fs_nr * n_ba_per_fs;
-  fs[fs_nr].dmainnode_buffer_index = fs_nr * n_ba_per_fs + 1;
-  fs[fs_nr].io_buffer_index = fs_nr * n_ba_per_fs + 2;
-  fs[fs_nr].rw_buffer_index = fs_nr * n_ba_per_fs + 3;
-
-  // check
-  load_block_in_buffer(fs_nr, 0, FileMNodeBuffer);
-
-  fs[fs_nr].free_list = 0;
-  fs[fs_nr].first_blank = 3 + fs[fs_nr].root_addr; // Root file on block 1, with first data block on 2
-
-// Creating root folder by hand
-  set_file_size(fs_nr, Logical, TgtFile, 0);
-  set_file_size(fs_nr, Block, TgtFile, 1);
-
-// TODO: put the addresses (1 and 2) in definitions
-  set_nth_data_block_addr(fs_nr, 0, TgtFile, 2);
-
-  flush_buffer_to_block(fs_nr, fs[fs_nr].root_addr + 1, FileMNodeBuffer);
-
-
-  flush_root_node(fs_nr);
-
-  return;
-}
-
-filesystem* retrieve_fs()
-{
-  filesystem* fs = 0; // FIXME: temporary
-
-// TODO
-  assert(false);
-
-  return fs;
 }
 
 File get_root(int fs_nr)
