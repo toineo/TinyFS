@@ -77,13 +77,11 @@ void init_disk_data()
 
   // initialize once.
   // FIXME: this code isn't needed right?
-  /*
   if (is_disk_init == TRUE)
   {
     return;
   }
   is_disk_init = TRUE;
-  */
 
 
   // Disk init

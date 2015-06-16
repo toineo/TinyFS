@@ -145,7 +145,6 @@ uint8_t read_attribute(int fs_nr, attr_type attr);
 /****** Exported functions ******/
 void init_fs()
 {
-  int i;
   int fs_nr;
 
   // initialize once.
@@ -164,11 +163,8 @@ void init_fs()
     // TODO: magic number check
     fs[fs_nr].disk_index = fs_nr;
 
-    fs[fs_nr].disk_size = get_disk_size(disk_nr);
-    fs[fs_nr].root_addr = get_first_addr(disk_nr);
-
-    for (i = 0; i < n_ba_per_fs; i++)
-      init_bytearray(fs_nr * n_ba_per_fs + i);
+    fs[fs_nr].disk_size = get_disk_size(fs_nr);
+    fs[fs_nr].root_addr = get_first_addr(fs_nr);
 
     fs[fs_nr].fmainnode_buffer_index = fs_nr * n_ba_per_fs;
     fs[fs_nr].dmainnode_buffer_index = fs_nr * n_ba_per_fs + 1;
