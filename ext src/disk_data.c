@@ -84,6 +84,10 @@ void init_disk_data()
   is_disk_init = TRUE;
 
 
+  // TODO
+  mboot_init();
+
+
   // Disk init
   for (drv_nr = 0; drv_nr < n_disks; drv_nr++)
   {
@@ -126,6 +130,7 @@ void disk_write_block(int drv_nr, diskaddr_t addr, int src_nr)
 
 
 
+// In the certified part, put that in the TCB disk driver
 // ************ FIXME ************
 // Check that the indexes and shifts are always within bounds
 void bytearray_set(int arr_nr, int shift, byte value)
