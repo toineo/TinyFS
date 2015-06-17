@@ -12,6 +12,7 @@
 
 
 #include <preinit/lib/debug.h>
+#include <preinit/dev/disk.h>
 
 #define assert KERN_ASSERT
 

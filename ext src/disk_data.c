@@ -85,13 +85,14 @@ void init_disk_data()
 
 
   // TODO
-  mboot_init();
+  //mboot_init();
 
 
   // Disk init
   for (drv_nr = 0; drv_nr < n_disks; drv_nr++)
   {
     // read physical mbr from disk.
+    // FIXME: need to use a buffer and read at the right place instead
     disk_xfer_wrap(drv_nr, 0, (uintptr_t) &mbr[drv_nr], 1, FALSE);
 
     disks[drv_nr].first_addr = mbr[drv_nr].partition[1].first_lba;
@@ -133,30 +134,30 @@ void disk_write_block(int drv_nr, diskaddr_t addr, int src_nr)
 // In the certified part, put that in the TCB disk driver
 // ************ FIXME ************
 // Check that the indexes and shifts are always within bounds
-void bytearray_set(int arr_nr, int shift, byte value)
-{
-  bytearrays_data[arr_nr][shift] = value;
-}
-byte bytearray_get(int arr_nr, int shift)
-{
-  return bytearrays_data[arr_nr][shift];
-}
-
-// Same functions but operating on an uint32
-void bytearray_set_uint32(int arr_nr, int shift, uint32_t value)
-{
-  int i;
-  for (i = 0; i < 4; i++)
-    bytearrays_data[arr_nr][shift + i] = (byte) (value >> (8 * i)) & 0xFF;
-}
-
-uint32_t bytearray_get_uint32(int arr_nr, int shift)
-{
-  uint32_t res = 0;
-  int i;
-
-  for (i = 0; i < 4; i++)
-    res += ((uint32_t) bytearrays_data[arr_nr][shift + i] & 0xFF) << (8 * i);
-
-  return res;
-}
+//void bytearray_set(int arr_nr, int shift, byte value)
+//{
+//  bytearrays_data[arr_nr][shift] = value;
+//}
+//byte bytearray_get(int arr_nr, int shift)
+//{
+//  return bytearrays_data[arr_nr][shift];
+//}
+//
+//// Same functions but operating on an uint32
+//void bytearray_set_uint32(int arr_nr, int shift, uint32_t value)
+//{
+//  int i;
+//  for (i = 0; i < 4; i++)
+//    bytearrays_data[arr_nr][shift + i] = (byte) (value >> (8 * i)) & 0xFF;
+//}
+//
+//uint32_t bytearray_get_uint32(int arr_nr, int shift)
+//{
+//  uint32_t res = 0;
+//  int i;
+//
+//  for (i = 0; i < 4; i++)
+//    res += ((uint32_t) bytearrays_data[arr_nr][shift + i] & 0xFF) << (8 * i);
+//
+//  return res;
+//}
