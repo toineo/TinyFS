@@ -62,7 +62,7 @@ struct mbr
 
 // Static objects
 // static ByteArray bytearrays[n_bytearray];
-static byte bytearrays_data[n_bytearray][DiskSectorSize];
+//static byte bytearrays_data[n_bytearray][DiskSectorSize];
 
 static Disk disks[n_disks];
 static struct mbr mbr[n_disks];
@@ -92,11 +92,12 @@ void init_disk_data()
   for (drv_nr = 0; drv_nr < n_disks; drv_nr++)
   {
     // read physical mbr from disk.
-    // FIXME: need to use a buffer and read at the right place instead
-    disk_xfer_wrap(drv_nr, 0, (uintptr_t) &mbr[drv_nr], 1, FALSE);
+    disk_xfer_wrap(drv_nr, 0, 0, 1, FALSE);
 
-    disks[drv_nr].first_addr = mbr[drv_nr].partition[1].first_lba;
-    disks[drv_nr].size = mbr[drv_nr].partition[1].sectors_count;
+    disks[drv_nr].first_addr = //mbr[drv_nr].partition[1].first_lba;
+        bytearray_get_uint32(0, (unsigned int) &(mbr[drv_nr].partition[1].first_lba) - (unsigned int) &(mbr[drv_nr]));
+    disks[drv_nr].size = // mbr[drv_nr].partition[1].sectors_count;
+        bytearray_get_uint32(0, (unsigned int) &(mbr[drv_nr].partition[1].sectors_count) - (unsigned int) &(mbr[drv_nr]));
   }
 
   // ByteArray init
@@ -121,12 +122,12 @@ diskaddr_t get_first_addr(int drv_nr)
 
 void disk_read_block(int drv_nr, diskaddr_t addr, int tgt_nr)
 {
-  disk_xfer_wrap (drv_nr, addr, (uintptr_t) bytearrays_data[tgt_nr], 1, FALSE);
+  disk_xfer_wrap (drv_nr, addr, tgt_nr, 1, FALSE);
 }
 
 void disk_write_block(int drv_nr, diskaddr_t addr, int src_nr)
 {
-  disk_xfer_wrap (drv_nr, addr, (uintptr_t) bytearrays_data[src_nr], 1, TRUE);
+  disk_xfer_wrap (drv_nr, addr, src_nr, 1, TRUE);
 }
 
 
