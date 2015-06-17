@@ -1,6 +1,5 @@
 ____ Integration ____
-- Magic number
-- Do a get file size
+- Implement get file size
 
 For proofs:
 - Only use int/unsigned int
