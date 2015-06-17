@@ -24,6 +24,10 @@
 #define FileMNodeFstAddrShift (FileMNodeBlockSizeShift + 4)
 
 
+// Magic number written in the filesystem first sector to assert that a fs
+// already exists
+#define magic_number 0xdeadbeef
+
 
 
 // As the buffers are fixed (and of predetermined size), we store them directly
@@ -166,26 +170,42 @@ void init_fs()
     fs[fs_nr].disk_size = get_disk_size(fs_nr);
     fs[fs_nr].root_addr = get_first_addr(fs_nr);
 
+    // Buffer indexes
     fs[fs_nr].fmainnode_buffer_index = fs_nr * n_ba_per_fs;
     fs[fs_nr].dmainnode_buffer_index = fs_nr * n_ba_per_fs + 1;
     fs[fs_nr].io_buffer_index = fs_nr * n_ba_per_fs + 2;
     fs[fs_nr].rw_buffer_index = fs_nr * n_ba_per_fs + 3;
 
-    load_block_in_buffer(fs_nr, fs[fs_nr].root_addr + 1, FileMNodeBuffer);
+    load_block_in_buffer(fs_nr, fs[fs_nr].root_addr, IOBuffer);
 
-    fs[fs_nr].free_list = 0;
-    fs[fs_nr].first_blank = 3 + fs[fs_nr].root_addr; // Root file on block 1, with first data block on 2
+    if (bytearray_get_uint32(fs[fs_nr].io_buffer_index, 8) == magic_number)
+    {
+      // A FS already exists on this partition
+      KERN_DEBUG("Found a filesystem on disk %d\n", fs_nr);
 
-    // Creating root folder by hand
-    set_file_size(fs_nr, Logical, TgtFile, 0);
-    set_file_size(fs_nr, Block, TgtFile, 1);
+      fs[fs_nr].first_blank = bytearray_get_uint32(fs[fs_nr].io_buffer_index, 0);
+      fs[fs_nr].free_list = bytearray_get_uint32(fs[fs_nr].io_buffer_index, 4);
+    }
+    else
+    {
+      // This partition isn't structured according to a FS we can read, so
+      // we create one (erasing any existing content)
+      load_block_in_buffer(fs_nr, fs[fs_nr].root_addr + 1, FileMNodeBuffer);
 
-    // TODO: put the addresses (1 and 2) in definitions
-    set_nth_data_block_addr(fs_nr, 0, TgtFile, 2);
+      fs[fs_nr].free_list = 0;
+      fs[fs_nr].first_blank = 3 + fs[fs_nr].root_addr; // Root file on block 1, with first data block on 2
 
-    flush_buffer_to_block(fs_nr, fs[fs_nr].root_addr + 1, FileMNodeBuffer);
+      // Creating root folder by hand
+      set_file_size(fs_nr, Logical, TgtFile, 0);
+      set_file_size(fs_nr, Block, TgtFile, 1);
 
-    flush_root_node(fs_nr);
+      // TODO: put the addresses (1 and 2) in definitions
+      set_nth_data_block_addr(fs_nr, 0, TgtFile, 2);
+
+      flush_buffer_to_block(fs_nr, fs[fs_nr].root_addr + 1, FileMNodeBuffer);
+
+      flush_root_node(fs_nr);
+    }
 
   }
 }
@@ -307,6 +327,8 @@ void flush_root_node(int fs_nr)
 {
   bytearray_set_uint32(fs[fs_nr].io_buffer_index, 0, fs[fs_nr].first_blank);
   bytearray_set_uint32(fs[fs_nr].io_buffer_index, 4, fs[fs_nr].free_list);
+
+  bytearray_set_uint32(fs[fs_nr].io_buffer_index, 8, magic_number);
 
   flush_buffer_to_block(fs_nr, fs[fs_nr].root_addr, IOBuffer);
 }

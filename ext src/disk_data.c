@@ -142,7 +142,7 @@ void bytearray_set_uint32(int arr_nr, int shift, uint32_t value)
 {
   int i;
   for (i = 0; i < 4; i++)
-    bytearrays_data[arr_nr][shift + i] = (value >> (8 * i)) & 0xFF;
+    bytearrays_data[arr_nr][shift + i] = (byte) (value >> (8 * i)) & 0xFF;
 }
 
 uint32_t bytearray_get_uint32(int arr_nr, int shift)
@@ -151,7 +151,7 @@ uint32_t bytearray_get_uint32(int arr_nr, int shift)
   int i;
 
   for (i = 0; i < 4; i++)
-    res += ((uint32_t) bytearrays_data[arr_nr][shift + i]) << 8 * i;
+    res += ((uint32_t) bytearrays_data[arr_nr][shift + i] & 0xFF) << (8 * i);
 
   return res;
 }
