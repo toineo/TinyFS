@@ -1,5 +1,6 @@
 ____ Integration ____
 - Implement get file size
+- Add the calls for preinit
 
 For proofs:
 - Only use int/unsigned int
